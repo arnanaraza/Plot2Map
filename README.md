@@ -1,0 +1,2 @@
+# BiomassCCI
+GlobBiomass validation workflow
