@@ -1,2 +1,1 @@
-# BiomassCCI
-GlobBiomass validation workflow
+# BiomassCCI_2019
