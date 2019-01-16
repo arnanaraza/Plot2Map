@@ -1,0 +1,47 @@
+"GEZ","ZONE","FAO.ecozone","GR1","GR2","GR3"
+"tropical","S.America","Tropical rainforest",0.7,2.3,5.9
+"tropical","S.America","Tropical mountain system",0.8,1.8,4.4
+"tropical","S.America","Tropical moist forest",0.6,2.7,5.2
+"tropical","S.America","Tropical dry forest",0,1.6,3.9
+"tropical","C.America","Tropical rainforest",0.7,2.3,5.9
+"tropical","C.America","Tropical mountain system",0.8,1.8,4.4
+"tropical","C.America","Tropical moist forest",0,2.7,5.2
+"tropical","C.America","Tropical dry forest",0.6,1.6,3.9
+"tropical","Australia","Tropical shrubland",1,1,4
+"tropical","Australia","Tropical rainforest",0.8,2.3,5.9
+"tropical","Australia","Tropical dry forest",0,1.6,3.9
+"tropical","Asia","Tropical rainforest",0.5,2.7,3.4
+"tropical","Asia","Tropical mountain system",0,1.1,2.9
+"tropical","Asia","Tropical moist forest",0.6,0.9,2.4
+"tropical","Asia","Tropical dry forest",1,1.6,3.9
+"tropical","Africa","Tropical shrubland",0.9,0.9,0.45
+"tropical","Africa","Tropical rainforest",1.6,5.8,10.7
+"tropical","Africa","Tropical mountain system",0.7,1.8,5.5
+"tropical","Africa","Tropical moist forest",0.6,0.9,2.9
+"tropical","Africa","Tropical dry forest",1.6,1.6,3.9
+"temperate","N.America","Temperate mountain system",0,4.4,3.1
+"temperate","N.America","Temperate continental forest",0,3.6,3.3
+"temperate","Europe","Temperate oceanic forest",0,9.2,6.3
+"temperate","Europe","Temperate mountain system",0,4.4,3.1
+"temperate","Europe","Temperate continental forest",0,3.6,3.3
+"temperate","Australia","Temperate oceanic forest",0.37,2.12,3.12
+"temperate","Australia","Temperate mountain system",0.37,2.12,3.12
+"subtropical","Europe","Subtropical mountain system",0,0.5,2.5
+"subtropical","Europe","Subtropical dry forest",1.8,1.8,2.4
+"subtropical","C.America","Subtropical steppe",1,1,2
+"subtropical","C.America","Subtropical mountain system",0,0.5,2.5
+"subtropical","Australia","Subtropical steppe",1,1,2
+"subtropical","Australia","Subtropical humid forest",0,1,2.5
+"subtropical","Australia","Subtropical dry forest",1,1,4
+"boreal","N.America","Boreal tundra woodland",0.4,0.4,0.4
+"boreal","N.America","Boreal mountain system",1,1.2,1.35
+"boreal","Europe","Boreal mountain system",1,1.2,1.35
+"boreal","Europe","Boreal coniferous forest",1.1,1.1,1.1
+NA,"N.America","Polar",0.67,1.77,2.92
+NA,"N.America",NA,0.67,1.77,2.92
+NA,"Europe",NA,1,1,1
+NA,"C.America",NA,0.67,1.77,2.92
+NA,"Australia","Tropical desert",0,0.6,0.9
+NA,"Australia","Subtropical desert",0,0.6,0.9
+NA,"Australia",NA,0,0.6,0.9
+NA,"Asia",NA,0.5,2.4,3.7
