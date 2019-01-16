@@ -8,7 +8,7 @@ sampleTreeCover <- function(pol, thresholds, wghts=FALSE){
     vls <- matrix(ncol=2, nrow=0)
     for(f in ras)
       if(file.exists(f))
-        vls <- rbind(vls, extract(crop(raster(f),extent(pol)), pol, weights=TRUE, 
+        vls <- rbind(vls, extract(crop(raster(f),extent(pol)), pol, weights=TRUE, #crops for less memory use
                                   normalizeWeights=FALSE) [[1]])
       # get rid of NA
       ids <- which(!is.na(vls[,1]))

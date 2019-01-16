@@ -1,6 +1,6 @@
 ### FUNCTION TO APPLY GROWTH RATES BY SUBSETTING BY YEAR AND BIOME-CONTINENT UNIQUE CONDITIONS
 
-TempFixed <- function(df=plots, domain='Asia', year=2010){
+c <- function(df=plots, domain='Asia', year=2010){
   #open default growth data
   gr <- read.csv(paste0(dataDir,'/GrowthData.csv'))
   
