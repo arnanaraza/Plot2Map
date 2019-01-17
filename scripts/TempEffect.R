@@ -7,7 +7,7 @@ HistoShift <- function(old=plots, new=plotsNew){
   
   # bind the agb columns and get other necessary columns for plotting purposes
   plots.2 <- cbind(old, new)
-  plots.3 <- plots.2[,c(1,5,6,7,20,26)]
+  plots.3 <- plots.2[,c('ZONE','POINT_X','POINT_Y','AGB_T_HA','AGB_T_HA')]
   plots.4 <- plots.3[(plots.3$AGB_T_HA < 600 & plots.3$AGB_T_HA.1 <600 & plots.3$AGB_T_HA.1 > 0), ] #0-600 Mg/ha window
   
   # create a bar graph with fixed agb bins
