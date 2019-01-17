@@ -28,13 +28,12 @@ scriptsDir <- "M:/BiomassCCI_2019/scripts"
 outDir <- "M:/BiomassCCI_2019/results"
 dataDir <- "M:/BiomassCCI_2019/data"
 plotsFile <- 'SamplePlots.csv'
-#plotsFile <- 'SamplePlots1.csv'
 agbTilesDir <- "D:/GlobBiomass_global_biomass_product_v20180531/agb" #*
 treeCoverDir <- '//GRS_NAS_01/GRSData/global_products/Hansen/treecover_2010/treecover2010_v3' #*
 SRS <- CRS("+init=epsg:4326")
 forestTHs <- 10 
 
-    #* should be in tiles and make sure of folder access
+    #* dataset should be in tiles
 
 
 # functions

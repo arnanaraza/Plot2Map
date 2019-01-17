@@ -45,7 +45,7 @@ invDasymetry <- function(clmn = "ZONE", value = "Europe", aggr = NULL,
   }
   
   #error control for few plots after aggregation
-  try(if(nrow(plots) <= 1) stop("too few plots selected, try decreasing minPlots or run non-aggregated model"))
+  try(if(nrow(plots) <= 1) stop("very few plots selected, try decreasing minPlots or run non-aggregated model"))
   
   print(paste0(nrow(plots), ' number of plots being processed'))
   
