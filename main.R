@@ -29,12 +29,11 @@ outDir <- "M:/BiomassCCI_2019/results"
 dataDir <- "M:/BiomassCCI_2019/data"
 plotsFile <- 'SamplePlots.csv'
 agbTilesDir <- "D:/GlobBiomass_global_biomass_product_v20180531/agb" #*
-#treeCoverDir <- "E:/treecover2010_v3"
 treeCoverDir <- '//GRS_NAS_01/GRSData/global_products/Hansen/treecover_2010/treecover2010_v3' #*
 SRS <- CRS("+init=epsg:4326")
 forestTHs <- 10 
 
-    #* should be in tiles and make sure of folder access
+    #* dataset should be in tiles
 
 
 # functions
@@ -52,7 +51,6 @@ setwd(mainDir)
 
 # open plot data
 loc <- list.files(dataDir, pattern=plotsFile) 
-
 setwd(dataDir)
 plots <- read.csv(loc[1])
 
@@ -61,7 +59,7 @@ gez <- sort(as.vector((unique(plots$GEZ)))) #gets unique eco-zones without NAs
 plotsNew <- ldply(lapply (1:length(gez), function(x) 
   TempFixed(plots, gez[[x]], 2010)), data.frame) #2010 = GlobBiomass year
 
-# add plots with NAs from the "uniques" (it's just 0.1% of the total dataset)
+# add plots with NAs from the "uniques" 
 plotsNew <- rbind(plotsNew, subset(plots, is.na(GEZ)))
 
 # creates histogram and change table of pre and post temporal fix
@@ -107,11 +105,11 @@ for(biome in biomes){
                                  paste0("agg01_", biome, ".Rdata")))
   
   Binned(AGBdata$plotAGB_10,AGBdata$mapAGB,
-         continent, paste0('binned01_',biome,'_',
+         biome, paste0('binned01_',biome,'_',
                            Sys.Date(),'.png'))
   
   Scatter(AGBdata$plotAGB_10,AGBdata$mapAGB,
-          continent, paste0('scatter01_',biome,'_',
+          biome, paste0('scatter01_',biome,'_',
                             Sys.Date(),'.png'))
 }
 
@@ -133,5 +131,4 @@ for(continent in continents){
                             Sys.Date(),'.png'))
 }
 
-##------------------Accuracy metrics------------------------------
 

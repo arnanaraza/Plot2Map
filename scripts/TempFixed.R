@@ -10,7 +10,8 @@ TempFixed <- function(df=plots, domain='Asia', year=2010){
   
   #join growth rate table using 3 variables to assure uniqueness
   df.old <- left_join(df0, gr, by = c('GEZ'='GEZ', 'ZONE'='ZONE', 'FAO.ecozone'='FAO.ecozone')) 
-  
+    
+      ##warning is normal since it's unique values pairing therefore different levels are expected
   
   #filter above and below map year (i.e. 2010 for GlobBiomass), keep no changes to map year
   below <- subset(df.old, AVG_YEAR < year) #non-NAs
