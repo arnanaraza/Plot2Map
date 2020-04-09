@@ -2,9 +2,10 @@
 ###### MAIN SCRIPT PLOT-TO-MAP COMPARISON #########
 ###################################################
 
-# Author 1: Sytze de Bruin, Laboratory of Geo-information Science and Remote Sensing, 
+# Authors: 
+# Sytze de Bruin, Laboratory of Geo-information Science and Remote Sensing, 
 # Wageningen University. e-mail: sytze.debruin@wur.nl
-# Author 2: Arnan Araza, Laboratory of Geo-information Science and Remote Sensing, 
+# Arnan Araza, Laboratory of Geo-information Science and Remote Sensing, 
 # Wageningen University. e-mail: arnanaraza@wur.nl
 
 
@@ -12,32 +13,29 @@
 rm(list=ls())
 
 # packages
-library(rgdal)
-library(raster)
-library(plyr)
-library(dplyr)
-library(foreach)
-library(parallel)
-library(doParallel)
-library(plotrix)
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(rgdal,rgeos,raster,plyr,dplyr,foreach,parallel,doParallel,plotrix,gfcanalysis)
 
 
 # global variables
-mainDir <- "M:/BiomassCCI_2019"
-scriptsDir <- "M:/BiomassCCI_2019/scripts" 
-outDir <- "M:/BiomassCCI_2019/results"
-dataDir <- "M:/BiomassCCI_2019/data"
+mainDir <- "D:/BiomassCCI_2019"
+scriptsDir <- "D:/BiomassCCI_2019/scripts" 
+outDir <- "D:/BiomassCCI_2019/results"
+dataDir <- "D:/BiomassCCI_2019/data"
 plotsFile <- 'SamplePlots.csv'
 agbTilesDir <- "D:/GlobBiomass_global_biomass_product_v20180531/agb" #*
 treeCoverDir <- '//GRS_NAS_01/GRSData/global_products/Hansen/treecover_2010/treecover2010_v3' #*
 SRS <- CRS("+init=epsg:4326")
 forestTHs <- 10 
+mapYear <- 10
+flDir <- 'E:/GFCFolder' 
 
     #* dataset should be in tiles
 
 
 # functions
 setwd(scriptsDir)  
+source('Deforested.R')
 source('TempFixed.R')
 source('TempEffect.R')
 source('MakeBlockPolygon.R')
@@ -53,6 +51,10 @@ setwd(mainDir)
 loc <- list.files(dataDir, pattern=plotsFile) 
 setwd(dataDir)
 plots <- read.csv(loc[1])
+
+# remove deforested plots
+plots <- Deforested(plots[1:6,],flDir,mapYear)
+
 
 # apply growth data to whole plot data by identifying AGB map year
 gez <- sort(as.vector((unique(plots$GEZ)))) #gets unique eco-zones without NAs
