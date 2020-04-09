@@ -1,5 +1,5 @@
 ###################################################
-###### MAIN SCRIPT GLOBBIOMASS VALIDATION #########
+###### MAIN SCRIPT PLOT-TO-MAP COMPARISON #########
 ###################################################
 
 # Author 1: Sytze de Bruin, Laboratory of Geo-information Science and Remote Sensing, 
