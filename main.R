@@ -14,7 +14,8 @@ rm(list=ls())
 
 # packages
 if (!require("pacman")) install.packages("pacman")
-pacman::p_load(rgdal,rgeos,raster,plyr,dplyr,foreach,parallel,doParallel,plotrix,gfcanalysis)
+pacman::p_load(rgdal,rgeos,raster,plyr,dplyr,foreach,parallel,doParallel,plotrix,gfcanalysis,
+               sf,mapview,stringr)
 
 
 # global variables
@@ -36,6 +37,7 @@ flDir <- 'E:/GFCFolder'
 # functions
 setwd(scriptsDir)  
 source('Deforested.R')
+source('BiomePair.R')
 source('TempFixed.R')
 source('TempEffect.R')
 source('MakeBlockPolygon.R')
@@ -53,7 +55,10 @@ setwd(dataDir)
 plots <- read.csv(loc[1])
 
 # remove deforested plots
-plots <- Deforested(plots[1:6,],flDir,mapYear)
+plots <- Deforested(plots,flDir,mapYear)
+
+# get biomes and zones
+plots1 <- BiomePair(plots)
 
 
 # apply growth data to whole plot data by identifying AGB map year

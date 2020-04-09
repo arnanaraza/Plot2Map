@@ -8,8 +8,8 @@ defo <- c()
   for (p in 1:nrow(plt)){
     
     #make a square polygon from plot size
-    xy <- SpatialPoints(plt[p,c(5:6)])
-    ch <- chull(plt[p,c(5:6)]) #main plot ID needed
+    xy <- SpatialPoints(plt[p,c('POINT_X', 'POINT_Y')])
+    ch <- chull(plt[p,c('POINT_X', 'POINT_Y')]) #main plot ID needed
     ww <- ifelse(!(is.na(plt[p,]$SIZE_HA)),  
                  (sqrt(plt[p,]$SIZE_HA*10000) *0.00001)/2, 0.0002) #mean of plots for NAs
     ww <- ifelse(ww < 0, abs(ww), ww)
@@ -42,7 +42,8 @@ defo <- c()
       
       vls <- numeric()
       for(f in fnms){
-        vls <- c(vls, extract(raster(f), pol)[[1]])
+        if(file.exists(f))
+          vls <- c(vls, extract(raster(f), pol)[[1]])
         }
     }
     vls <- if(length(vls[vls==0]) > length(vls[vls>0])) vls*0 else(c(vls)) 
@@ -50,6 +51,7 @@ defo <- c()
     
     defo[p] <- mean(vls[vls>0], na.rm=T) # exact 0 means no deforestation, will return NaN
   }
+
 plt$defo <- defo
 print(plt)
 defPlt <- subset(plt, plt$defo > 0 ) #if there is deforestation
