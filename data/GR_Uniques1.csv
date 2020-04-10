@@ -1,52 +1,55 @@
 GEZ,ZONE,FAO.ecozone,GR1,GR2,GR3
 Tropical,Africa,Tropical dry forest,0,1.6,3.9
-Tropical,Asia,Tropical dry forest,0,1.6,3.9
-Tropical,Australia,Tropical dry forest,0,1.6,3.9
-Tropical,C.America,Tropical dry forest,0,1.6,3.9
-Tropical,S.America,Tropical dry forest,0,1.6,3.9
-Tropical,S.America,Tropical moist deciduous forest,0.6,2.7,5.2
+Tropical,Africa,Tropical moist deciduous forest,0.6,2.7,5.2
 Tropical,Africa,Tropical moist forest,0.4,0.9,2.9
-Tropical,Asia,Tropical moist forest,0.4,0.9,2.4
-Tropical,C.America,Tropical moist forest,0.4,2.7,5.2
-Tropical,S.America,Tropical moist forest,0.4,2.7,5.2
 Tropical,Africa,Tropical mountain system,0.5,1.8,5.5
-Tropical,Asia,Tropical mountain system,0,1.1,2.9
-Tropical,C.America,Tropical mountain system,0.5,1.8,4.4
-Tropical,S.America,Tropical mountain system,0.5,1.8,4.4
 Tropical,Africa,Tropical rainforest,1.3,3.5,7.6
-Tropical,Asia,Tropical rainforest,0.7,2.7,3.4
-Tropical,Australia,Tropical rainforest,1,2.3,5.9
-Tropical,C.America,Tropical rainforest,1,2.3,5.9
-Tropical,S.America,Tropical rainforest,1,2.3,5.9
 Tropical,Africa,Tropical shrubland,0.9,0.9,0.45
-Temperate,N.America,Temperate continental forest,0,3.6,3.3
+Tropical,Asia,Tropical dry forest,0,1.6,3.9
+Tropical,Asia,Tropical moist deciduous forest,0.6,2.7,5.2
+Tropical,Asia,Tropical moist forest,0.4,0.9,2.4
+Tropical,Asia,Tropical mountain system,0,1.1,2.9
+Tropical,Asia,Tropical rainforest,0.7,2.7,3.4
+Subtropical,Asia,Subtropical mountain system,0,0.5,2.5
+NA,Asia,NA,0.5,2.4,3.7
+Tropical,Australia,Tropical dry forest,0,1.6,3.9
+Tropical,Australia,Tropical rainforest,1,2.3,5.9
+Temperate,Australia,Temperate mountain system,0,4.4,3.1
+Subtropical,Australia,Subtropical dry forest,1,1,4
+Subtropical,Australia,Subtropical humid forest,0,1,2.5
+Subtropical,Australia,Subtropical steppe,1,1,4
+Subtropical,Australia,Subtropical desert,0,0.6,0.9
+Temperate,Australia,Temperate oceanic forest,0.37,2.12,3.12
+NA,Australia,Tropical desert,0,0.6,0.9
+NA,Australia,Subtropical desert,0,0.6,0.9
+NA,Australia,NA,0,0.6,0.9
+Tropical,Australia,Tropical shrubland,1,1,4
+Tropical,C.America,Tropical dry forest,0,1.6,3.9
+Tropical,C.America,Tropical moist forest,0.4,2.7,5.2
+Tropical,C.America,Tropical mountain system,0.5,1.8,4.4
+Tropical,C.America,Tropical rainforest,1,2.3,5.9
+Subtropical,C.America,Subtropical mountain system,0,0.5,2.5
+Subtropical,C.America,Subtropical steppe,1,1,4
+NA,C.America,NA,0.67,1.77,2.92
 Temperate,Europe,Temperate continental forest,0,3.6,3.3
 Boreal,Europe,Boreal coniferous forest,1.1,1.1,1.1
 Boreal,Europe,Boreal mountain system,1.3,1.3,1.35
 NA,Europe,NA,1,1,1
-Temperate,N.America,Temperate mountain system,0,4.4,3.1
-Temperate,Australia,Temperate mountain system,0,4.4,3.1
 Subtropical,Europe,Subtropical dry forest,1,1,4
-Subtropical,Australia,Subtropical dry forest,1,1,4
-Subtropical,Australia,Subtropical humid forest,0,1,2.5
 Subtropical,Europe,Subtropical mountain system,0,0.5,2.5
-Subtropical,C.America,Subtropical mountain system,0,0.5,2.5
-Subtropical,Asia,Subtropical mountain system,0,0.5,2.5
-Subtropical,C.America,Subtropical steppe,1,1,4
-Subtropical,Australia,Subtropical steppe,1,1,4
+Temperate,Europe,Temperate mountain system,0,4.4,3.1
+Temperate,Europe,Temperate oceanic forest,2.3,2.3,2.3
+Temperate,N.America,Temperate continental forest,0,3.6,3.3
+Temperate,N.America,Temperate mountain system,0,4.4,3.1
 Boreal,N.America,Boreal mountain system,1.3,1.3,1.35
 Boreal,N.America,Boreal tundra woodland,0.4,0.4,0.4
-Temperate,Europe,Temperate mountain system,0,4.4,3.1
-Temperate,Australia,Temperate oceanic forest,0.37,2.12,3.12
 NA,N.America,Polar,0.67,1.77,2.92
 NA,N.America,NA,0.67,1.77,2.92
-Temperate,Europe,Temperate oceanic forest,2.3,2.3,2.3
-NA,C.America,NA,0.67,1.77,2.92
-NA,Australia,Tropical desert,0,0.6,0.9
-NA,Australia,Subtropical desert,0,0.6,0.9
-NA,Australia,NA,0,0.6,0.9
-NA,Asia,NA,0.5,2.4,3.7
-Tropical,Australia,Tropical shrubland,1,1,4
-,,, ,,
+Tropical,S.America,Tropical dry forest,0,1.6,3.9
+Tropical,S.America,Tropical moist deciduous forest,0.6,2.7,5.2
+Tropical,S.America,Tropical moist forest,0.4,2.7,5.2
+Tropical,S.America,Tropical mountain system,0.5,1.8,4.4
+Tropical,S.America,Tropical rainforest,1,2.3,5.9
+Subtropical,S.America,Subtropical dry forest,1,1,4
 ,,,,,
 ,, ,,,

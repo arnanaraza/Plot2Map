@@ -19,6 +19,8 @@ BiomePair <- function(df){
   
   ## omit some non-overlap for now (shouldn't be the case!)
   intZone <- st_join(p, intZone,st_intersects, left=T)
+  intZone <- intZone[!duplicated(intZone$geometry), ]
+
   intFez <- st_join(p, intFez,st_intersects, left=T)
   intFez <- intFez[!duplicated(intFez$geometry), ]
   

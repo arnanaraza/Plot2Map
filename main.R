@@ -38,8 +38,8 @@ flDir <- 'E:/GFCFolder'
 setwd(scriptsDir)  
 source('Deforested.R')
 source('BiomePair.R')
-source('TempFixed.R')
-source('TempEffect.R')
+source('TempFix.R')
+source('TempVis.R')
 source('MakeBlockPolygon.R')
 source('TileNames.R')
 source('BlockMeans.R')
@@ -47,35 +47,47 @@ source('invDasymetry.R')
 source('Plots.R')
 setwd(mainDir)
 
-## ------------------ Temporal adjustment ------------------------
-
+## ------------------ Preliminary -------------------------------
 # open plot data
 loc <- list.files(dataDir, pattern=plotsFile) 
 setwd(dataDir)
 plots <- read.csv(loc[1])
 
+# reference data is polygon or points?
+
+
+
 # remove deforested plots
-plots <- Deforested(plots,flDir,mapYear)
+plots1 <- Deforested(plots,flDir,mapYear)
 
 # get biomes and zones
-plots1 <- BiomePair(plots)
-
+plots2 <- BiomePair(plots1)
+  
+## ------------------ Temporal adjustment ------------------------
 
 # apply growth data to whole plot data by identifying AGB map year
-gez <- sort(as.vector((unique(plots$GEZ)))) #gets unique eco-zones without NAs
-plotsNew <- ldply(lapply (1:length(gez), function(x) 
-  TempFixed(plots, gez[[x]], 2010)), data.frame) #2010 = GlobBiomass year
+gez <- sort(as.vector((unique(plots2$GEZ)))) #get unique gez and without NA (sorting removes it also)
+plots.tf <- ldply(lapply (1:length(gez), function(x) 
+  TempApply(plots2, gez[[x]], 2010)), data.frame) #change the year!
 
-# add plots with NAs from the "uniques" 
-plotsNew <- rbind(plotsNew, subset(plots, is.na(GEZ)))
+#tree growth data uncertainty estimate
+plots.var <- ldply(lapply (1:length(gez), function(x) 
+  TempVar(plots2, gez[[x]], 2010)), data.frame) 
 
-# creates histogram and change table of pre and post temporal fix
-hist <- HistoShift(plots, plotsNew)
-change <- ChangeTable(plots, plotsNew)
-rm(plots)
+#get absolute uncertainty of temporally adjusted plots 
+plots.tf$sdGrowth <- abs(plots.tf$AGB_T_HA - plots.var$SD)
+
+#order pre and post temproal fix plots for pairing
+plots3 <- plots2[with(plots2, order(GEZ)), ]
+plots.tf$AGB_T_HA_ORIG <- plots3$AGB_T_HA
+
+#histogram of temporal fix effect
+HistoTemp(plots.tf, 2010)
+HistoShift(plots.tf, 2010)
+rm(plots, plots1, plots2, plots3)
 
   # export new AGB data according to date generated (optional)
-  write.csv(plotsNew, paste0('GlobBiomass_validation_data_600_TempFixed_',Sys.Date(),'.csv'), row.names=FALSE)
+  write.csv(plots.tf, paste0('Validation_data_TempFixed_',Sys.Date(),'.csv'), row.names=FALSE)
 
 
 ## ------------------ InvDasymetry model ---------------------------
