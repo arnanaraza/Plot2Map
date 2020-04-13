@@ -54,13 +54,6 @@ HistoShift <- function(df, year){
     group_by(group) %>%
     tally()
   new2 <- as.data.frame(new2)
-  
-  #summarize change in plot bins
-  both <- cbind(old2,new2[,-1])
-  both$change <- round(((both[,3] - both[,2] ) / both[,2] ) * 100, 2)
-  bins.str <-c('0_50','050_100','100_150','150_200','200_300','300_600', '>600')
-  both[,1] <- bins.str
-  names(both) <- c('agb_bins', 'pre_TF', 'post_TF', '%change')
 
   #calculate change in AGB
   agg.old <- aggregate(old1["AGB_T_HA_ORIG"], by=old1["group"], mean)

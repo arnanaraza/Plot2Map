@@ -3,6 +3,8 @@
 
 
 Deforested <- function(plt=plt, fdir = flFolder, map_year=10){
+if (class(plt)[1] == 'SpatialPolygonsDataFrame'){ 
+  plt <- as.data.frame(plt)}
   
 defo <- c()  
   for (p in 1:nrow(plt)){

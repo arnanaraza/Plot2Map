@@ -22,13 +22,16 @@ AGBtileNames <- function(pol){
   crds <- expand.grid(x=bb[1,],y=bb[2,])
   fnms <- character(4)
   for(i in 1:nrow(crds)){
-    lon <- 2*(crds[i,1]%/%2)
-    lat <- 2*(crds[i,2]%/%2) + 2
+    lon <- 40*(crds[i,1]%/%40) 
+    lon1 <- ifelse(crds[i,1] > lon, 40*(crds[i,1]%/%40) - 20, 40*(crds[i,1]%/%40) + 20)
+    lon2 <- ifelse(lon1 - crds[i,1]  < 20 & lon1 - crds[i,1]  > 0 & lon1 > 0, lon1 - 40, lon1) #if East (positive)
+    lon <- ifelse(lon1 - crds[i,1]  < -40, lon1 + 40, lon2) #if West (negative)
+    lat <- 40*(crds[i,2]%/%40) + 40
     LtX <- ifelse(lon < 0, "W", "E")
     LtY <- ifelse(lat < 0, "S", "N")
     WE <- paste0(LtX, sprintf('%03d',abs(lon)))
-    NS <- paste0(LtY, sprintf('%02d',abs(lat))) 
-    fnms[i] <- file.path(agbTilesDir, paste0(NS,WE,"_agb_100m.tif"))
+    NS <- paste0(LtY,sprintf('%02d',abs(lat)))
+    fnms[i] <- file.path(agbTilesDir, paste0(NS, WE,"_agb.tif"))
   }
   unique(fnms)
 }

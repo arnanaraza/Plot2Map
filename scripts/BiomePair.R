@@ -1,7 +1,7 @@
 ### FUNCTION TO GET THE CORRESPONDING ZONES AND BIOMES OF PLOT LOCATIONS USING PRE-PROCESSED SHAPEFILES
 
 BiomePair <- function(df){
-    plots0 <- df
+  plots0 <- df
   SRS <- CRS("+init=epsg:4326")
   coordinates(plots0) <- ~POINT_X+POINT_Y
   proj4string(plots0) <- SRS
