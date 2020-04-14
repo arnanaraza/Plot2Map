@@ -14,8 +14,7 @@ rm(list=ls())
 
 # packages
 if (!require("pacman")) install.packages("pacman")
-pacman::p_load(rgdal,rgeos,raster,plyr,dplyr,foreach,parallel,doParallel,plotrix,gfcanalysis,
-               sf)
+pacman::p_load(rgdal,rgeos,raster,plyr,dplyr,foreach,parallel,doParallel,plotrix,gfcanalysis,sf,stringr)
 
 # global variables
 mainDir <- "D:/BiomassCCI_2019"
@@ -29,6 +28,7 @@ treeCoverDir <- 'E:/treecover2010_v3' #*
 flDir <- 'E:/GFCFolder' 
 forestTHs <- 10 
 mapYear <- 10
+SRS <- CRS('+init=epsg:4326')
 
     #* be sure to download/access tiles
 
@@ -89,7 +89,7 @@ plots.tf$AGB_T_HA_ORIG <- plots3$AGB_T_HA
 #histogram of temporal fix effect
 HistoTemp(plots.tf, 2003)
 HistoShift(plots.tf, 2003)
-rm(plots1, plots2, plots3) 
+rm(plots1, plots2, plots3, plots.var) 
 
   # export new AGB data according to date generated (optional)
   write.csv(plots.tf, paste0('Validation_data_TempFixed_',Sys.Date(),'.csv'), row.names=FALSE)
