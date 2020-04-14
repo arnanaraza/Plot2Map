@@ -15,7 +15,7 @@ rm(list=ls())
 # packages
 if (!require("pacman")) install.packages("pacman")
 pacman::p_load(rgdal,rgeos,raster,plyr,dplyr,foreach,parallel,doParallel,plotrix,gfcanalysis,
-               sf,mapview,stringr, mapview, purrr,vegan)
+               sf)
 
 # global variables
 mainDir <- "D:/BiomassCCI_2019"
@@ -30,8 +30,7 @@ flDir <- 'E:/GFCFolder'
 forestTHs <- 10 
 mapYear <- 10
 
-    #* dataset should be in tiles
-
+    #* be sure to download/access tiles
 
 # functions
 setwd(scriptsDir)  
@@ -96,7 +95,7 @@ rm(plots1, plots2, plots3)
   write.csv(plots.tf, paste0('Validation_data_TempFixed_',Sys.Date(),'.csv'), row.names=FALSE)
 
 
-## ------------------ Forest fraction and plot-to-map comparison ---------------------------
+## ------------------ Forest fraction and plot-to-map comparison  ---------------------------
 
 # retrieve zoning groups
 continents <- unique(na.omit(plots.tf$ZONE))
@@ -142,7 +141,7 @@ for(biome in biomes){
 for(continent in continents){
   cat("Processing: ",continent,"\n")
   
-  AGBdata <- invDasymetry("ZONE", continent, wghts = TRUE,is_poly = TRUE)
+  AGBdata <- invDasymetry("ZONE", continent, wghts = TRUE, is_poly = TRUE)
   
   save(AGBdata, file = file.path(outDir,
                                  paste0("InvDasyPlot_", continent, ".Rdata")))

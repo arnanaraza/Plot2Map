@@ -1,6 +1,6 @@
 
 TempApply <- function(df, domain, year){
-  gr <- read.csv(paste0(dataDir,'/GR_Uniques1.csv'))
+  gr <- read.csv(paste0(dataDir,'/GR_Uniques.csv'))
   gr$GEZ <- as.character(gr$GEZ)
   gr$ZONE <- as.character(gr$ZONE)
   gr$FAO.ecozone <- as.character(gr$FAO.ecozone)
