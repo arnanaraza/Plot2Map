@@ -13,25 +13,25 @@ HistoTemp <- function(df, year){
   # create a bar graph with fixed agb bins
   h1 <- hist(df$AGB_T_HA_ORIG, plot=F, breaks=25)
   h2 <- hist(df$AGB_T_HA, plot=F, breaks=25)
-  png (filename=paste0(outDir,paste0('/histogram_tempfixed_',year,'.png')))
+  png (filename=paste0(outDir,paste0('/histogram_tempfixed_',year,'.png')),  width = 800, height = 600)
   y.ax <- nrow(df) / 4
  # y.ax <-25000
   
-  plot(h1, xaxt="n", col=rgb(0,0,1,1/4), main=main, xlab='AGB_T_HA',ylab='Frequency',
-       xlim = c(0,600), ylim=c(0,y.ax))
-  axis(1,at=0:6*100, labels=c(0:6*100))
+  plot(h1, xaxt="n", col=rgb(0,0,1,1/4), main=main, xlab='AGB(Mg/ha)',ylab='n',
+       xlim = c(0,600), ylim=c(0,y.ax),cex.lab=2, cex.axis=1.5, cex.main=2, cex.sub=2)
+  axis(1,at=0:6*100, labels=c(0:6*100),cex.lab=2, cex.axis=1.5, cex.main=2, cex.sub=2)
   plot(h2,col=rgb(1,0,0,1/4),add=T)
-  legend("topright", c("Before", "After", "Overlap"), 
-         col=c(rgb(0,0,1,1/4), rgb(1,0,0,1/4), rgb(0.5,0,0.5,1/4)), lwd=10)
+  legend("topright", c("Before", "After", "Overlap"),
+         col=c(rgb(0,0,1,1/4), rgb(1,0,0,1/4), rgb(0.5,0,0.5,1/4)), lwd=10, cex=2, bty='n')
   
   dev.off()
   
   
-  plot(h1, xaxt="n", col=rgb(0,0,1,1/4), main=main, xlab='AGB_T_HA',ylab='Frequency',
+  plot(h1, xaxt="n", col=rgb(0,0,1,1/4), main=main, xlab='AGB(Mg/ha)',ylab='n',
        xlim = c(0,600), ylim=c(0,y.ax))
   axis(1,at=0:6*100, labels=c(0:6*100))
   plot(h2,col=rgb(1,0,0,1/4),add=T)
-  legend("topright", c("Before", "After", "Overlap"), 
+  legend("topright", c("Before", "After", "Overlap"),
          col=c(rgb(0,0,1,1/4), rgb(1,0,0,1/4), rgb(0.5,0,0.5,1/4)), lwd=10)
 }
 
@@ -56,11 +56,21 @@ HistoShift <- function(df, year){
   new2 <- as.data.frame(new2)
 
   #calculate change in AGB
-  agg.old <- aggregate(old1["AGB_T_HA_ORIG"], by=old1["group"], mean)
-  agg.new <- aggregate(new1["AGB_T_HA"], by=new1["group"], mean)
+  old3 <- aggregate(old1["AGB_T_HA_ORIG"], by=old1["group"], mean)
+  new3 <- aggregate(new1["AGB_T_HA"], by=new1["group"], mean)
   
-  outs <- do.call(cbind, list(old2,new2,agg.old,agg.new))
-  outs <- outs[,c(1,2,4,6,8)]
+  if (nrow(old2) != nrow(new2)){
+    fj1 <- full_join(old2, new2, by=c('group'='group'))
+    fj2 <-  full_join(old3, new3, by=c('group'='group'))
+    outs <- cbind(fj1,fj2)
+    outs <- outs[,c(1,2,3,5,6)]
+    
+  }
+  else{
+    outs <- do.call(cbind, list(old2,new2,old3,new3))
+    outs <- outs[,c(1,2,4,6,8)]
+  }
+  
   names(outs) <- c('agb_Mgha_bins', 'n_pre', 'n_post', 'agb_Mgha_pre', 'agb_Mgha_post')
   setwd(outDir)
   write.csv(outs, paste0('TF_pre_post_change_',year,'.csv'), row.names = F)

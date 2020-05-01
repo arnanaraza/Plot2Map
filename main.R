@@ -23,7 +23,7 @@ outDir <- "D:/BiomassCCI_2019/results"
 dataDir <- "D:/BiomassCCI_2019/data"
 plotsFile <- 'SamplePlots.csv'
 plotsFile1 <- 'SamplePoly.csv'
-agbTilesDir <- "E:/Glob2010/" #*
+agbTilesDir <- "E:/GlobBiomass2017/" #*
 treeCoverDir <- 'E:/treecover2010_v3' #*
 flDir <- 'E:/GFCFolder' 
 forestTHs <- 10 
@@ -73,11 +73,11 @@ plots2 <- BiomePair(plots1)
 # apply growth data to whole plot data by identifying AGB map year
 gez <- sort(as.vector((unique(plots2$GEZ)))) #get unique gez and without NA (sorting removes it also)
 plots.tf <- ldply(lapply (1:length(gez), function(x) 
-  TempApply(plots2, gez[[x]], 2003)), data.frame) #change the year!
+  TempApply(plots2, gez[[x]], 2000)), data.frame) #change the year!
 
 #tree growth data uncertainty estimate
 plots.var <- ldply(lapply (1:length(gez), function(x) 
-  TempVar(plots2, gez[[x]], 2003)), data.frame) 
+  TempVar(plots2, gez[[x]], 2000)), data.frame) 
 
 #get absolute uncertainty of temporally adjusted plots 
 plots.tf$sdGrowth <- abs(plots.tf$AGB_T_HA - plots.var$SD)
@@ -87,8 +87,8 @@ plots3 <- plots2[with(plots2, order(GEZ)), ]
 plots.tf$AGB_T_HA_ORIG <- plots3$AGB_T_HA
 
 #histogram of temporal fix effect
-HistoTemp(plots.tf, 2003)
-HistoShift(plots.tf, 2003)
+HistoTemp(plots.tf, 2000)
+HistoShift(plots.tf, 2000)
 rm(plots1, plots2, plots3, plots.var) 
 
   # export new AGB data according to date generated (optional)
@@ -141,7 +141,7 @@ for(biome in biomes){
 for(continent in continents){
   cat("Processing: ",continent,"\n")
   
-  AGBdata <- invDasymetry("ZONE", continent, wghts = TRUE, is_poly = TRUE)
+  AGBdata <- invDasymetry("ZONE", continent, wghts = TRUE, is_poly = F)
   
   save(AGBdata, file = file.path(outDir,
                                  paste0("InvDasyPlot_", continent, ".Rdata")))

@@ -56,7 +56,7 @@ invDasymetry <- function(clmn = "ZONE", value = "Europe", aggr = NULL,
                      .packages='raster', .export=c('MakeBlockPolygon', 'SRS',
                                                    'sampleTreeCover', 'TCtileNames',
                                                    'AGBtileNames', 'sampleTreeCover',
-                                                   'sampleAGBmap',  'plots',
+                                                   'sampleAGBmap',  'plots.tf',
                                                    'agbTilesDir', 'treeCoverDir',
                                                    'forestTHs')) %dopar% {
                                                      
