@@ -35,28 +35,43 @@ sampleTreeCover <- function(pol, thresholds, wghts=FALSE){
 
 
 # sample block mean mapped AGB over pol
-sampleAGBmap <- function(pol, wghts=FALSE){
-  ras <- AGBtileNames(pol)
-  if(wghts){
+sampleAGBmap <- function(pol, wghts=FALSE, own=TRUE){
+  
+  if (own==T){
     vls <- matrix(ncol=2, nrow=0)
-    for(f in ras)
-      if(file.exists(f))
-        vls <- rbind(vls, extract(raster(f), pol, weights=TRUE, 
-                                  normalizeWeights=FALSE)[[1]])
-      # get rid of NA
-      ids <- which(!is.na(vls[,1]))
-      vls <- vls[ids,]
-      if(length(vls) == 0) return(0)
-      AGB <- ifelse(length(vls) == 2, vls[1], 
-                    sum(apply(vls, 1, prod))/sum(vls[,2]))
+    vls <- rbind(vls, extract(AGBown, pol, weights=TRUE, 
+                              normalizeWeights=FALSE)[[1]])
+    # get rid of NA
+    ids <- which(!is.na(vls[,1]))
+    vls <- vls[ids,]
+    if(length(vls) == 0) return(0)
+    AGB <- ifelse(length(vls) == 2, vls[1], 
+                  sum(apply(vls, 1, prod))/sum(vls[,2]))
+
   } else{
-    vls <- numeric()
-    for(f in ras)
-      if(file.exists(f))
-        vls <- c(vls, extract(raster(f), pol)[[1]])
-      
-      if(length(na.omit(vls)) == 0) return(0)
-      AGB <- mean(vls, na.rm=T)
+    ras <- AGBtileNames(pol)
+    if(wghts){
+      vls <- matrix(ncol=2, nrow=0)
+   
+      for(f in ras)
+        if(file.exists(f))
+          vls <- rbind(vls, extract(raster(f), pol, weights=TRUE, 
+                                    normalizeWeights=FALSE)[[1]])
+        # get rid of NA
+        ids <- which(!is.na(vls[,1]))
+        vls <- vls[ids,]
+        if(length(vls) == 0) return(0)
+        AGB <- ifelse(length(vls) == 2, vls[1], 
+                      sum(apply(vls, 1, prod))/sum(vls[,2]))
+    } else{
+      vls <- numeric()
+      for(f in ras)
+        if(file.exists(f))
+          vls <- c(vls, extract(raster(f), pol)[[1]])
+        
+        if(length(na.omit(vls)) == 0) return(0)
+        AGB <- mean(vls, na.rm=T)
+    }
   }
   AGB
 }

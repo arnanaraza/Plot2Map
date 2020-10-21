@@ -4,9 +4,12 @@ HistoTemp <- function(df, year){
   
   if("plotAGB_10" %in% colnames(df)){
     df$AGB_T_HA <- df$plotAGB_10
-    main <- 'Before and after plot harmonization'
-  }else {    df$AGB_T_HA <- df$AGB_T_HA
-  main <- 'Before and after temporal adjustment'}
+    df$AGB_T_HA_ORIG <- df$orgPlotAGB
+    main <- 'Before and after FF correction'
+  }else {    
+    df$AGB_T_HA <- df$AGB_T_HA
+    df$AGB_T_HA_ORIG <- df$AGB_T_HA_ORIG
+    main <- 'Before and after temporal adjustment'}
 
   df <- df[(df$AGB_T_HA < 600 & df$AGB_T_HA_ORIG <600 & df$AGB_T_HA > 0), ] #select 600 and below, disregard negative for now
   
@@ -36,6 +39,14 @@ HistoTemp <- function(df, year){
 }
 
 HistoShift <- function(df, year){
+  if("plotAGB_10" %in% colnames(df)){
+    df$AGB_T_HA <- df$plotAGB_10
+    df$AGB_T_HA_ORIG <- df$orgPlotAGB
+   
+  }else {    
+    df$AGB_T_HA <- df$AGB_T_HA
+    df$AGB_T_HA_ORIG <- df$AGB_T_HA_ORIG
+   }
   
   #calculate change in bins
   df$AGB_T_HA_ORIG <- ifelse(df$AGB_T_HA_ORIG == 0, df$AGB_T_HA_ORIG + 0.0001,df$AGB_T_HA_ORIG)

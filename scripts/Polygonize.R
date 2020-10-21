@@ -1,7 +1,18 @@
 ### FUNCTION TO CREATE POLYGONS FROM SUBPLOTS WITH CORNER COORDINATES IN METERS i.e. Labriere et al. 2018
 ### AND POSSIBLE IRREGULAR PLOTS (NON-RECTANGULAR AND NON-SQUARED)
 
-polyThis <- function(coords_poly){
+#Sample irregular polygon 
+polyIrreg <- function(coords_poly){
+  d <- as.matrix(coords_poly[,c('POINT_X','POINT_Y')])
+  ch <- chull(d)
+  coords <- d[c(ch, ch[1]), ]  # closed polygon
+  sp_poly <- SpatialPolygons(list(Polygons(list(Polygon(coords)), ID=1)))
+  sp_poly_df <- SpatialPolygonsDataFrame(sp_poly, data=data.frame(ID=1))
+  return(sp_poly_df)
+}
+
+#Sample circular plots
+polyCirc <- function(shp){
   d <- as.matrix(coords_poly[,c('POINT_X','POINT_Y')])
   ch <- chull(d)
   coords <- d[c(ch, ch[1]), ]  # closed polygon
@@ -11,6 +22,7 @@ polyThis <- function(coords_poly){
 }
 
 
+#Labriere et al plots
 Polygonize <- function(df=plotsPoly, SRS='+init=epsg:32622'){
   dat <- split(df, df$id)
   pol <- lapply(dat, function(x) polyThis(x))
@@ -26,3 +38,4 @@ Polygonize <- function(df=plotsPoly, SRS='+init=epsg:32622'){
   pol1$POINT_Y <- c@coords[,2]
   return(pol1)
 }
+
