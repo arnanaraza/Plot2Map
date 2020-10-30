@@ -24,7 +24,7 @@ BiomePair <- function(df){
   df$ZONE <- as.character(df$SUBREGION)
   df$FAO.ecozone <-  as.character(df$GEZ_TERM)
   df$GEZ <- word(df$FAO.ecozone, 1)
-  df <- df[ , -which(names(df) %in% c("SUBREGION","GEZ_TERM", 'ORIG_FID'))]
+  df <- df[ , -which(names(df) %in% c("SUBREGION","GEZ_TERM",'FEZ','ORIG_FID'))]
   
   #some cleaning
   df$GEZ <- ifelse(df$GEZ == 'Polar', 'Boreal', df$GEZ)
