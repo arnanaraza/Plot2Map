@@ -15,13 +15,14 @@ rm(list=ls())
 # packages
 if (!require("pacman")) install.packages("pacman")
 pacman::p_load(rgdal,rgeos,raster,plyr,dplyr,foreach,purrr,BIOMASS,data.table,
-               parallel,doParallel,plotrix,gfcanalysis,sf,stringr, randomForest,BIOMASS)
+               parallel,doParallel,plotrix,gfcanalysis,sf,stringr, ranger,BIOMASS)
 
 # global variables
 mainDir <- "D:/BiomassCCI_2019"
 scriptsDir <- "D:/BiomassCCI_2019/scripts" 
 outDir <- "D:/BiomassCCI_2019/results"
 dataDir <- "D:/BiomassCCI_2019/data"
+dataDir <- 'E:/AGBG/data'
 #plotsFile <- 'SamplePlots.csv'
 #plotsFile1 <- 'SamplePoly.csv'
 #plotsFile1 <- 'PolyTropiSAR.csv'
@@ -30,7 +31,8 @@ treeCoverDir <- 'E:/treecover2010_v3' #*
 SRS <- CRS('+init=epsg:4326')
 flDir <- 'E:/GFCFolder' 
 forestTHs <- 10 
-mapYear <- 19
+mapYear <- 17
+mapRsl <- 100
 AGBown <- 'NA'
 plots <- 'NA'
     #* be sure to download/access tiles
@@ -49,12 +51,14 @@ source('invDasymetry.R')
 source('Plots.R')
 source('Nested.R')
 source('MeasurementErr.R')
+source('RawPlots.R')
 setwd(mainDir)
 
 ## ------------------ Preliminary -------------------------------
 
 # reference data is point data?
-loc <- list.files(dataDir, pattern='Tropi') #tropiSAR data
+loc <- list.files(dataDir, pattern='.csv') #raw files
+#loc <- list.files(dataDir, pattern='Tropi') #tropiSAR data
 #loc <- list.files(dataDir, pattern='Sample') #sample data
 setwd(dataDir)
 plots <- read.csv(loc[1]) #sample global data
@@ -67,12 +71,24 @@ plots <- read.csv(loc[1]) #sample global data
   SRS <- CRS('+init=epsg:4326') #set global SRS again
   
 ## ------------------ Pre-processing ----------------------------
-  
+
+  #format raw plots if needed (see Technical documentation for format requirements)
+  loc
+  pp_bajo <- RawPlots(read.csv(loc[1])) #bajocalima 3 5 1 2 7 8
+  pp_cofor <- RawPlots(read.csv(loc[2])) #cofor 8 10 1 2 9 16
+  pp_russia <- RawPlots(read.csv(loc[3])) #cofor 1 7 4 3 5 2
+  pp_miombo <- RawPlots(read.csv(loc[4])) #cofor 3 8 5 4 11 10
+  pp_rainfor <- RawPlots(read.csv(loc[9])) #cofor 2 7 4 3 5 6
+  pp_mwang <- RawPlots(read.csv(loc[10])) #cofor 6 15 14 13 8 9
+  plots <- rbind(pp_bajo,pp_russia,pp_miombo,pp_cofor,
+                 pp_rainfor,pp_mwang)
+  plots <- subset(plots, !is.na(plots$POINT_X))
+
 # remove deforested plots  
 plots1 <- Deforested(plots,flDir,mapYear) 
   
 # get biomes and zones
-plots2 <- BiomePair(plots1)
+plots2 <- BiomePair(plots)
 
   #merge plot-level data for polygons
   plots2$AGB_T_HA <- plotsPolyAGB$AGB_T_HA 
@@ -110,30 +126,20 @@ plots2 <- BiomePair(plots1)
   
   
 ## ------------------ Temporal adjustment ------------------------
-
 # apply growth data to whole plot data by identifying AGB map year
+yr <- 2000+mapYear
 gez <- sort(as.vector((unique(plots2$GEZ)))) #get unique gez and without NA (sorting removes it also)
-plots.tf <- ldply(lapply (1:length(gez), function(x) 
-  TempApply(plots2, gez[[x]], 2010)), data.frame) #change the year!
+plots3 <- ldply(lapply (1:length(gez), function(x) 
+  TempApply(plots2, gez[[x]], yr)), data.frame) #make sure mapYear is set!
 
 #tree growth data uncertainty estimate
-plots.var <- ldply(lapply (1:length(gez), function(x) 
-  TempVar(plots2, gez[[x]], 2010)), data.frame) 
-
-#get absolute uncertainty of temporally adjusted plots 
-plots.tf$sdGrowth <- abs(plots.tf$AGB_T_HA - plots.var$SD)
-
-#order pre and post temproal fix plots for pairing
-plots3 <- plots2[with(plots2, order(GEZ)), ]
-plots.tf$AGB_T_HA_ORIG <- plots3$AGB_T_HA
+plots.tf <- ldply(lapply (1:length(gez), function(x) 
+  TempVar(plots3, gez[[x]], yr)), data.frame) 
 
 #histogram of temporal fix effect
-HistoTemp(plots.tf, 2017)
-HistoShift(plots.tf, 2017)
-rm(plots1, plots2, plots3, plots.var) 
-
-  # export new AGB data according to date generated (optional)
-  write.csv(plots.tf, paste0('Validation_data_TempFixed_',Sys.Date(),'.csv'), row.names=FALSE)
+HistoTemp(plots.tf, yr)
+HistoShift(plots.tf, yr)
+#rm(plots1, plots2, plots3, plots.var) 
 
   # if you will skip temporal adjustment
   plots2$AGB_T_HA_ORIG <- plots2$AGB_T_HA
@@ -146,12 +152,22 @@ rm(plots1, plots2, plots3, plots.var)
   AGBown <- raster(paste0(dataDir,'/',AGBown))
   AGBown [AGBown==0] <- NA
 
+  
+## ------------------ Sampling error ------------
+plots.tf$RS_HA <- mapRsl^2 / 10000 
+plots.tf$ratio <-  plots.tf$SIZE_HA / plots.tf$RS_HA
+se <- read.csv(paste0(dataDir, '/se.csv'))
+rfSE <- ranger(se$cv ~ ., data=se[,c('SIZE_HA','RS_HA','ratio')])
+plots.tf$sdSE <-  (predict(rfSE, plots.tf[,c('SIZE_HA', 'RS_HA', 'ratio')])[[1]] / 100) * mean(plots.tf$AGB_T_HA, na.rm=T)
 
 #sum uncertainty from tree measurement and temporal adjustment
-plots.tf$varPlot <- plots.tf$sdTree^2 + plots.tf$sdGrowth^2
+plots.tf$varPlot <- plots.tf$sdTree^2 + plots.tf$sdGrowth^2 +plots.tf$sdSE^2
   
-  
-  
+#export new validation data
+setwd('E:/AGBG/')
+write.csv(plots.tf, paste0('Validation_data_2017map_',Sys.Date(),'.csv'), row.names=FALSE)
+setwd(dataDir)
+
 ## ------------------ Forest fraction and plot-to-map comparison of global biomass maps ---------------------------
 
 # retrieve zoning groups

@@ -14,40 +14,41 @@ BiomePair <- function(df){
   re  <- st_as_sf(zone)
   
   ## intersect polygons with points, keeping the information from both
-  intZone <- st_intersection(p,re)
-  intFez <- st_intersection(p,li)
-  
-  ## omit some non-overlap for now (shouldn't be the case!)
-  intZone <- st_join(p, intZone,st_intersects, left=T)
-  intZone <- intZone[!duplicated(intZone$geometry), ]
+ # intZone <- st_intersection(p,st_make_valid(re))
+  intFez0 <- st_intersection(p,st_make_valid(li))
+  df <- st_intersection(st_make_valid(re),intFez0)
+  #intZone0 <- intZone0 %>% select(-contains(".1"))
 
-  intFez <- st_join(p, intFez,st_intersects, left=T)
-  intFez <- intFez[!duplicated(intFez$geometry), ]
   
   #order first before joining
-  intZone1 <- intZone[order(intZone$PLOT_ID.x), ]
-  intFez1 <- intFez[order(intFez$PLOT_ID.x), ]
-  plots0 <- plots0[order(plots0$PLOT_ID), ]
-  plots0$ZONE <- as.character(intZone1$SUBREGION)
-  plots0$FAO.ecozone <- intFez1$GEZ_TERM
-  plots0$GEZ <- word(plots0$FAO.ecozone, 1)
+  df$ZONE <- as.character(df$SUBREGION)
+  df$FAO.ecozone <-  as.character(df$GEZ_TERM)
+  df$GEZ <- word(df$FAO.ecozone, 1)
+  df <- df[ , -which(names(df) %in% c("SUBREGION","GEZ_TERM", 'ORIG_FID'))]
   
   #some cleaning
-  plots0 <- subset(plots0, plots0$GEZ != 'Water')# | plots0$GEZ != 'No')
-  plots0$ZONE <- ifelse(word(plots0$ZONE, 1) == 'Australia', 'Australia', plots0$ZONE)
-  plots0$ZONE <- ifelse(word(plots0$ZONE, 1) == 'South' | word(plots0$ZONE, 1) == 'America' , 'S.America', plots0$ZONE)
-  plots0$ZONE <- ifelse(word(plots0$ZONE, 1) == 'Central' | word(plots0$ZONE, 1) == 'America' , 'C.America', plots0$ZONE)
+  df$GEZ <- ifelse(df$GEZ == 'Polar', 'Boreal', df$GEZ)
+  df$FAO.ecozone <- ifelse(df$FAO.ecozone == 'Polar', 'Boreal coniferous forest', df$FAO.ecozone)
   
-  plots0$ZONE <- ifelse(word(plots0$ZONE, 2) == 'Asia' & !is.na(word(plots0$ZONE, 2)), 
-                        'Asia', plots0$ZONE)
-  plots0$ZONE <- ifelse(word(plots0$ZONE, 2) == 'Africa' & !is.na(word(plots0$ZONE, 2)), 
-                        'Africa', plots0$ZONE)
-  plots0$ZONE <- ifelse(word(plots0$ZONE, 2) == 'Europe' & !is.na(word(plots0$ZONE, 2)), 
-                        'Europe', plots0$ZONE)
+  df <- subset(df, df$GEZ != 'Water')# | df$GEZ != 'No')
+  df$ZONE <- ifelse(word(df$ZONE, 1) == 'Australia', 'Australia', df$ZONE)
+  df$ZONE <- ifelse(word(df$ZONE, 1) == 'South' | word(df$ZONE, 1) == 'America' , 'S.America', df$ZONE)
+  df$ZONE <- ifelse(word(df$ZONE, 1) == 'Central' | word(df$ZONE, 1) == 'America' , 'C.America', df$ZONE)
   
-  plt <- as.data.frame(plots0)
+  df$ZONE <- ifelse(word(df$ZONE, 2) == 'Asia' & !is.na(word(df$ZONE, 2)), 
+                        'Asia', df$ZONE)
+  df$ZONE <- ifelse(word(df$ZONE, 2) == 'Africa' & !is.na(word(df$ZONE, 2)), 
+                        'Africa', df$ZONE)
+  df$ZONE <- ifelse(word(df$ZONE, 2) == 'Europe' & !is.na(word(df$ZONE, 2)), 
+                        'Europe', df$ZONE)
+  
+  plt <- as.data.frame(df)
   #plt <- plt[order(plt$POINT_Y), ]
   #plt$ZONE <- if(is.na(plt$ZONE)) plt$ZONE else plt$ZONE
+  plt$POINT_X <- st_coordinates(plt$geometry)[,1]
+  plt$POINT_Y <- st_coordinates(plt$geometry)[,2]
+  plt <- plt[ , -which(names(plt) %in% "geometry")]
+  
   return(plt)
   
 }

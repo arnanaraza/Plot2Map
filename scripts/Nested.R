@@ -9,13 +9,14 @@ Nested <- function(centroid_shp, tree_table){
   plotTree0 <- subset(tree_table, tree_table$TREE_ALIVE == 1 & 
                         tree_table$TREE_OR_STUMP == 1) #only alive!
   
-  #10, 24, 20
-  id <-plotTree0 [,10]
-  diameter <- as.numeric(plotTree0 [,24])
-  height <-as.numeric(plotTree0 [,20])
-  genus <- "Picea" 
-  species <- "sitchensis"
-  size <- as.numeric(100) #sq m
+  id <-plotTree0 [,menu(names(plotTree0), title="which column is your unique Plot ID?")]
+  diameter <- as.numeric(plotTree0 [,menu(names(plotTree0), 
+                                          title="which column is your unique  DBH (cm)?")])
+  height <-as.numeric(plotTree0 [,menu(names(plotTree0), 
+                                       title="which column is your unique Tree Height (m)?")])
+  genus <- readline(prompt="Enter tree genus: ")#Picea 
+  species <- readline(prompt="Enter tree species: ")#sitchensis
+  size <- as.numeric(readline(prompt="Enter plot size in m2: ")) #100
   fez <- NA
   gez <- NA
   year<- 2010
