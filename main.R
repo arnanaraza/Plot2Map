@@ -22,10 +22,9 @@ mainDir <- "D:/BiomassCCI_2019"
 scriptsDir <- "D:/BiomassCCI_2019/scripts" 
 outDir <- "D:/BiomassCCI_2019/results"
 dataDir <- "D:/BiomassCCI_2019/data"
-dataDir <- 'E:/AGBG/data'
-#plotsFile <- 'SamplePlots.csv'
-#plotsFile1 <- 'SamplePoly.csv'
-#plotsFile1 <- 'PolyTropiSAR.csv'
+plotsFile <- 'SamplePlots.csv'
+  #plotsFile1 <- 'SamplePoly.csv'
+  #plotsFile1 <- 'PolyTropiSAR.csv'
 agbTilesDir <- "E:/CCIBiomass" #*
 treeCoverDir <- 'E:/treecover2010_v3' #*
 SRS <- CRS('+init=epsg:4326')
@@ -58,42 +57,23 @@ setwd(mainDir)
 
 # reference data is point data?
 loc <- list.files(dataDir, pattern='.csv') #raw files
-#loc <- list.files(dataDir, pattern='Tropi') #tropiSAR data
-#loc <- list.files(dataDir, pattern='Sample') #sample data
+  #loc <- list.files(dataDir, pattern='Tropi') #tropiSAR data
+  #loc <- list.files(dataDir, pattern='Sample') #sample data
 setwd(dataDir)
-plots <- read.csv(loc[1]) #sample global data
+
+#formatted sample global data (see documentation for format)
+plots <- read.csv(loc[6]) 
+
+#unformatted sample plot data
+#asks users about specific column index of required plot variables (id, x, y, agb, size, year)
+plots <- RawPlots(read.csv(loc[1])) # 3 5 1 2 7 8
 
   # reference data is polygon?
-  plotsPoly <- read.csv(loc[2])
-  plotsPolyAGB <- read.csv(loc[3])
+  plotsPoly <- read.csv(loc[7])
+  plotsPolyAGB <- read.csv(loc[8])
   SRS <- CRS('+init=epsg:32622')  #tropiSAR data
   plots <- Polygonize(plotsPoly, SRS)
   SRS <- CRS('+init=epsg:4326') #set global SRS again
-  
-## ------------------ Pre-processing ----------------------------
-
-  #format raw plots if needed (see Technical documentation for format requirements)
-  loc
-  pp_bajo <- RawPlots(read.csv(loc[1])) #bajocalima 3 5 1 2 7 8
-  pp_cofor <- RawPlots(read.csv(loc[2])) #cofor 8 10 1 2 9 16
-  pp_russia <- RawPlots(read.csv(loc[3])) #cofor 1 7 4 3 5 2
-  pp_miombo <- RawPlots(read.csv(loc[4])) #cofor 3 8 5 4 11 10
-  pp_rainfor <- RawPlots(read.csv(loc[9])) #cofor 2 7 4 3 5 6
-  pp_mwang <- RawPlots(read.csv(loc[10])) #cofor 6 15 14 13 8 9
-  plots <- rbind(pp_bajo,pp_russia,pp_miombo,pp_cofor,
-                 pp_rainfor,pp_mwang)
-  plots <- subset(plots, !is.na(plots$POINT_X))
-
-# remove deforested plots  
-plots1 <- Deforested(plots,flDir,mapYear) 
-  
-# get biomes and zones
-plots2 <- BiomePair(plots)
-
-  #merge plot-level data for polygons
-  plots2$AGB_T_HA <- plotsPolyAGB$AGB_T_HA 
-  plots2$AVG_YEAR <- plotsPolyAGB$AVG_YEAR
-    
   
   # reference data has tree-level measurement? -- needs centroid shp and tree data table
   cent <- readOGR(dsn = dataDir, layer = "SampleCentroid") #Wales sample data
@@ -105,7 +85,19 @@ plots2 <- BiomePair(plots)
   xyTree <- read.csv(paste0(dataDir,'/SampleTreeXY.csv'))
   plotTree$id <- factor(plotTree$id, levels=unique(plotTree$id), labels=seq_along(nrow(plotTree)))
   xyTree$id <- factor(xyTree$id, levels=unique(xyTree$id), labels=seq_along(nrow(xyTree)))
+  
+## ------------------ Pre-processing ----------------------------
 
+# remove deforested plots  
+plots1 <- Deforested(plots,flDir,mapYear) 
+  
+# get biomes and zones
+plots2 <- BiomePair(plots)
+
+  #merge plot-level data for polygons
+  plots2$AGB_T_HA <- plotsPolyAGB$AGB_T_HA 
+  plots2$AVG_YEAR <- plotsPolyAGB$AVG_YEAR
+    
 
 ## ------------------ Measurement error --------------------------
   
@@ -164,7 +156,7 @@ plots.tf$sdSE <-  (predict(rfSE, plots.tf[,c('SIZE_HA', 'RS_HA', 'ratio')])[[1]]
 plots.tf$varTot <- plots.tf$sdTree^2 + plots.tf$sdGrowth^2 +plots.tf$sdSE^2
   
 #export new validation data
-setwd('E:/AGBG/')
+setwd(outDir)
 write.csv(plots.tf, paste0('Validation_data_2017map_',Sys.Date(),'.csv'), row.names=FALSE)
 setwd(dataDir)
 
