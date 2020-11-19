@@ -8,6 +8,7 @@
 # Sytze de Bruin, Laboratory of Geo-information Science and Remote Sensing, 
 # Wageningen University. e-mail: sytze.debruin@wur.nl
 
+# INDENDENT CODES ARE OPTIONAL 
 
 ## ------------------ Preliminaries ------------------
 rm(list=ls())
@@ -15,7 +16,7 @@ rm(list=ls())
 # packages
 if (!require("pacman")) install.packages("pacman")
 pacman::p_load(rgdal,rgeos,raster,plyr,dplyr,foreach,purrr,BIOMASS,data.table,
-               parallel,doParallel,plotrix,gfcanalysis,sf,stringr, ranger,BIOMASS)
+               parallel,doParallel,plotrix,gfcanalysis,sf,stringr, randomForest,BIOMASS)
 
 # global variables
 mainDir <- "D:/BiomassCCI_2019"
@@ -23,18 +24,17 @@ scriptsDir <- "D:/BiomassCCI_2019/scripts"
 outDir <- "D:/BiomassCCI_2019/results"
 dataDir <- "D:/BiomassCCI_2019/data"
 plotsFile <- 'SamplePlots.csv'
-  #plotsFile1 <- 'SamplePoly.csv'
-  #plotsFile1 <- 'PolyTropiSAR.csv'
-agbTilesDir <- "E:/CCIBiomass" #*
-treeCoverDir <- 'E:/treecover2010_v3' #*
 SRS <- CRS('+init=epsg:4326')
 flDir <- 'E:/GFCFolder' 
+agbTilesDir <- "E:/CCIBiomass" #*
+treeCoverDir <- 'E:/treecover2010_v3' #*
 forestTHs <- 10 
 mapYear <- 17
 mapRsl <- 100
 AGBown <- 'NA'
 plots <- 'NA'
-    #* be sure to download/access tiles
+   
+  #* for independent map validation only (be sure to download/access tiles)
 
 # functions
 setwd(scriptsDir)  
@@ -53,60 +53,59 @@ source('MeasurementErr.R')
 source('RawPlots.R')
 setwd(mainDir)
 
-## ------------------ Preliminary -------------------------------
+## ------------------ Preliminaries and preprocessing -------------------------------
 
-# reference data is point data?
-loc <- list.files(dataDir, pattern='.csv') #raw files
-  #loc <- list.files(dataDir, pattern='Tropi') #tropiSAR data
-  #loc <- list.files(dataDir, pattern='Sample') #sample data
+# 1. PLOT DATA IS POINT DATA?
 setwd(dataDir)
+plots <- read.csv(plotsFile) 
+# remove deforested plots  
+plots1 <- Deforested(plots,flDir,mapYear) 
+# get biomes and zones
+plots2 <- BiomePair(plots1)
 
-#formatted sample global data (see documentation for format)
-plots <- read.csv(loc[6]) 
-
-#unformatted sample plot data
-#asks users about specific column index of required plot variables (id, x, y, agb, size, year)
-plots <- RawPlots(read.csv(loc[1])) # 3 5 1 2 7 8
-
-  # reference data is polygon?
-  plotsPoly <- read.csv(loc[7])
-  plotsPolyAGB <- read.csv(loc[8])
-  SRS <- CRS('+init=epsg:32622')  #tropiSAR data
-  plots <- Polygonize(plotsPoly, SRS)
-  SRS <- CRS('+init=epsg:4326') #set global SRS again
+  # 2. PLOT DATA IS UNFORMATTED/USING THE DEFAULT FORMAT OF THE SURVEY?
+  #asks users about specific column index of required plot variables (id, x, y, agb, size, year)
+  plotsFile <- 'SampleUnformattedPlots.csv'
+  plots <- RawPlots(read.csv(plotsFile))  # 3 8 5 4 11 10 index
+  plots1 <- Deforested(plots,flDir,mapYear) 
+  plots2 <- BiomePair(plots1)
   
-  # reference data has tree-level measurement? -- needs centroid shp and tree data table
-  cent <- readOGR(dsn = dataDir, layer = "SampleCentroid") #Wales sample data
-  tree <- read.csv(paste0(dataDir,'/SampleTreeNested.csv'))
-  TreeData <- Nested(cent, tree)
-  plotTree <- TreeData[[1]]
-  xyTree <- TreeData[[2]]
+  # 3. PLOT DATA IS A POLYGON WITH PLOT CORNER COORDINATES? 
+  plotsFile <- 'PolyTropiSAR.csv'  #Labriere et al. 2018 sample data
+  plotsPoly <- read.csv(plotsFile)
+  plotsPolyAGB <-  read.csv(paste0(dataDir, '/PolyTropiAGB.csv')) #agb per plot 
+  SRS <- CRS('+init=epsg:32622') #plot data is projected
+  plots <- Polygonize(plotsPoly, SRS)
+  SRS <- CRS('+init=epsg:4326') 
+  plots1 <- Deforested(plots,flDir,mapYear) 
+  plots2 <- BiomePair(plots1)
+  plots2$AGB_T_HA <- plotsPolyAGB$AGB_T_HA 
+  plots2$AVG_YEAR <- plotsPolyAGB$AVG_YEAR
+
+  # 4. PLOT DATA HAS TREE-LEVEL MEASUREMENT? 
   plotTree<- read.csv(paste0(dataDir, '/SampleTree.csv')) 
   xyTree <- read.csv(paste0(dataDir,'/SampleTreeXY.csv'))
   plotTree$id <- factor(plotTree$id, levels=unique(plotTree$id), labels=seq_along(nrow(plotTree)))
   xyTree$id <- factor(xyTree$id, levels=unique(xyTree$id), labels=seq_along(nrow(xyTree)))
-  
-## ------------------ Pre-processing ----------------------------
-
-# remove deforested plots  
-plots1 <- Deforested(plots,flDir,mapYear) 
-  
-# get biomes and zones
-plots2 <- BiomePair(plots)
-
-  #merge plot-level data for polygons
-  plots2$AGB_T_HA <- plotsPolyAGB$AGB_T_HA 
-  plots2$AVG_YEAR <- plotsPolyAGB$AVG_YEAR
-    
-
-## ------------------ Measurement error --------------------------
-  
-  #option1 - using BIOMASS package, needs two inputs (tree-level data and plot coordinates)
-  plots <- MeasurementErr(plotTree, xyTree, 'Europe')#world
+  #estimate plot-level AGB using BIOMASS package 
+  plots <- MeasurementErr(plotTree, xyTree, 'World')#includes an SD of measurement error
   plots1 <- Deforested(plots,flDir,mapYear) 
   plots2 <- BiomePair(plots1)
   
-  #option2 - using a pre-trained RF model for plot-level data (points and polygons)
+  # 5. SPECIAL CASE PLOT DATA WITH TREE-LEVEL MEASUREMENT FROM A DATABASE
+  cent <- readOGR(dsn = dataDir, layer = "SampleCentroid") #Plot centroid
+  tree <- read.csv(paste0(dataDir,'/SampleTreeNested.csv')) #Tree data table
+  TreeData <- Nested(cent, tree) #10 24 20 Picea sitchensis 100
+  plotTree <- TreeData[[1]]
+  xyTree <- TreeData[[2]]
+  plots <- MeasurementErr(plotTree, xyTree, 'World')
+  plots1 <- Deforested(plots,flDir,mapYear) 
+  plots2 <- BiomePair(plots1)
+  
+
+## ------------------ Measurement error (ONLY for cases #1-3) --------------------------
+
+  #Using a pre-trained RF model for plot-level data 
   rf <- get(load(paste0(dataDir, '/rf1.RData'))[1]) #pre-trained RF model from 8000+ plots across biomes 
   plotsPred <- plots2[,c('AGB_T_HA','SIZE_HA', 'GEZ')]
   names(plotsPred) <- c('agb', 'size', 'gez')
@@ -131,28 +130,20 @@ plots.tf <- ldply(lapply (1:length(gez), function(x)
 #histogram of temporal fix effect
 HistoTemp(plots.tf, yr)
 HistoShift(plots.tf, yr)
-#rm(plots1, plots2, plots3, plots.var) 
 
   # if you will skip temporal adjustment
   plots2$AGB_T_HA_ORIG <- plots2$AGB_T_HA
   plots2$sdGrowth <- 0
   plots.tf <- plots2
   
-  # use own map! only works for non-aggregated run
-  AGBown <- 'tropiSAR_100m.tif'
-  AGBown <- raster('D:/GEOCARBON/geocarbon.tif')
-  AGBown <- raster(paste0(dataDir,'/',AGBown))
-  AGBown [AGBown==0] <- NA
-
-  
-## ------------------ Sampling error ------------
+## ------------------ Sampling error ---------------------
 plots.tf$RS_HA <- mapRsl^2 / 10000 
 plots.tf$ratio <-  plots.tf$SIZE_HA / plots.tf$RS_HA
 se <- read.csv(paste0(dataDir, '/se.csv'))
 rfSE <- ranger(se$cv ~ ., data=se[,c('SIZE_HA','RS_HA','ratio')])
 plots.tf$sdSE <-  (predict(rfSE, plots.tf[,c('SIZE_HA', 'RS_HA', 'ratio')])[[1]] / 100) * mean(plots.tf$AGB_T_HA, na.rm=T)
 
-#sum uncertainty from tree measurement and temporal adjustment
+## ------------------ Plot uncertainty total ------------
 plots.tf$varTot <- plots.tf$sdTree^2 + plots.tf$sdGrowth^2 +plots.tf$sdSE^2
   
 #export new validation data
@@ -161,6 +152,10 @@ write.csv(plots.tf, paste0('Validation_data_2017map_',Sys.Date(),'.csv'), row.na
 setwd(dataDir)
 
 ## ------------------ Forest fraction and plot-to-map comparison of global biomass maps ---------------------------
+  # use own map! only works for non-aggregated run
+  AGBown <- 'tropiSAR_100m.tif'
+  AGBown <- raster(paste0(dataDir,'/',AGBown))
+  AGBown [AGBown==0] <- NA
 
 # retrieve zoning groups
 continents <- unique(na.omit(plots.tf$ZONE))

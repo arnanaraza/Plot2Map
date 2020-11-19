@@ -2,7 +2,7 @@
 
 ## Function to calculate plot-level uncertainties taking tree-level data (plot), plot locations (xy)
 MeasurementErr <- function(plot=plotIND, xy=xyIND, region='India'){
-  plot <- subset(plot, diameter>=20) #filter those above 10cm in diameter
+  plot <- subset(plot, diameter>=10) #filter those above 10cm in diameter
   blowup <- plot[1,5] / 10000
   print(paste('plot size is', blowup, 'ha'))
 
@@ -33,7 +33,7 @@ MeasurementErr <- function(plot=plotIND, xy=xyIND, region='India'){
   if("height" %in% colnames(plot)){
     mc <- by(plot, plot$id,
              function(x) AGBmonteCarlo(D = x$diameter, WD = x$wd, errWD = x$sd.wd,
-                                       H = x$height, errH = x$height*0.1, Dpropag ='chave2004'),simplify = F) 
+                                       H = x$height, errH = x$height*0.3, Dpropag ='chave2004'),simplify = F)  #assumes 30% height error
   }else{
     mc <- by(plot, plot$id,
              function(x) AGBmonteCarlo(D = x$diameter, WD = x$wd, errWD = x$sd.wd,

@@ -22,10 +22,10 @@ polyCirc <- function(shp){
 }
 
 
-#Labriere et al plots
+#TropiSar/AfriSar dataset 
 Polygonize <- function(df=plotsPoly, SRS='+init=epsg:32622'){
   dat <- split(df, df$id)
-  pol <- lapply(dat, function(x) polyThis(x))
+  pol <- lapply(dat, function(x) polyIrreg(x))
   pol1 <- list(pol, makeUniqueIDs = T) %>%  #non-unique IDs
     flatten() %>% 
     do.call(rbind, .)
