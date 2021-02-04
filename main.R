@@ -19,17 +19,17 @@ pacman::p_load(rgdal,rgeos,raster,plyr,dplyr,foreach,purrr,BIOMASS,data.table,
                parallel,doParallel,plotrix,gfcanalysis,sf,stringr, randomForest,BIOMASS)
 
 # global variables
-mainDir <- "D:/BiomassCCI_2019"
-scriptsDir <- "D:/BiomassCCI_2019/scripts" 
-outDir <- "D:/BiomassCCI_2019/results"
-dataDir <- "D:/BiomassCCI_2019/data"
+mainDir <- "C:/Plot2Map"
+scriptsDir <- "C:/Plot2Map/scripts" 
+outDir <- "C:/Plot2Map/results"
+dataDir <- "C:/Plot2Map/data"
 plotsFile <- 'SamplePlots.csv'
 SRS <- CRS('+init=epsg:4326')
 flDir <- 'E:/GFCFolder' 
 agbTilesDir <- "E:/CCIBiomass" #*
 treeCoverDir <- 'E:/treecover2010_v3' #*
 forestTHs <- 10 
-mapYear <- 17
+mapYear <- 18
 mapRsl <- 100
 AGBown <- 'NA'
 plots <- 'NA'
@@ -61,7 +61,7 @@ plots <- read.csv(plotsFile)
 # remove deforested plots  
 plots1 <- Deforested(plots,flDir,mapYear) 
 # get biomes and zones
-plots2 <- BiomePair(plots1)
+plots2 <- BiomePair(plots)
 
   # 2. PLOT DATA IS UNFORMATTED/USING THE DEFAULT FORMAT OF THE SURVEY?
   #asks users about specific column index of required plot variables (id, x, y, agb, size, year)
@@ -83,14 +83,15 @@ plots2 <- BiomePair(plots1)
   plots2$AVG_YEAR <- plotsPolyAGB$AVG_YEAR
 
   # 4. PLOT DATA HAS TREE-LEVEL MEASUREMENT? 
-  plotTree<- read.csv(paste0(dataDir, '/SampleTree.csv')) 
-  xyTree <- read.csv(paste0(dataDir,'/SampleTreeXY.csv'))
+  plotTree<- read.csv(paste0(dataDir, '/RussiaTree.csv')) 
+  xyTree <- read.csv(paste0(dataDir,'/RussiaTreeXY.csv'))
   plotTree$id <- factor(plotTree$id, levels=unique(plotTree$id), labels=seq_along(nrow(plotTree)))
   xyTree$id <- factor(xyTree$id, levels=unique(xyTree$id), labels=seq_along(nrow(xyTree)))
   #estimate plot-level AGB using BIOMASS package 
   plots <- MeasurementErr(plotTree, xyTree, 'World')#includes an SD of measurement error
+  plots
   plots1 <- Deforested(plots,flDir,mapYear) 
-  plots2 <- BiomePair(plots1)
+  plots2 <- BiomePair(plots)
   
   # 5. SPECIAL CASE PLOT DATA WITH TREE-LEVEL MEASUREMENT FROM A DATABASE
   cent <- readOGR(dsn = dataDir, layer = "SampleCentroid") #Plot centroid
@@ -107,10 +108,10 @@ plots2 <- BiomePair(plots1)
 
   #Using a pre-trained RF model for plot-level data 
   rf <- get(load(paste0(dataDir, '/rf1.RData'))[1]) #pre-trained RF model from 8000+ plots across biomes 
+  
   plotsPred <- plots2[,c('AGB_T_HA','SIZE_HA', 'GEZ')]
   names(plotsPred) <- c('agb', 'size', 'gez')
   plotsPred$size <- plotsPred$size * 10000 #convert size to m2
-  plotsPred$size <- as.integer(plotsPred$size)
   plotsPred$gez = factor(plotsPred$gez,
                          levels = c("Boreal","Subtropical","Temperate","Tropical"))
   plots2$sdTree <- predict(rf, plotsPred)

@@ -3,8 +3,8 @@
 ## Function to calculate plot-level uncertainties taking tree-level data (plot), plot locations (xy)
 MeasurementErr <- function(plot=plotIND, xy=xyIND, region='India'){
   plot <- subset(plot, diameter>=10) #filter those above 10cm in diameter
-  blowup <- plot[1,5] / 10000
-  print(paste('plot size is', blowup, 'ha'))
+#  blowup <- plot[1,5] / 10000
+ # print(paste('plot size is', blowup, 'ha'))
 
   #taxonomy correction
   tax <- correctTaxo(genus = plot$genus, species = plot$species)
@@ -33,7 +33,7 @@ MeasurementErr <- function(plot=plotIND, xy=xyIND, region='India'){
   if("height" %in% colnames(plot)){
     mc <- by(plot, plot$id,
              function(x) AGBmonteCarlo(D = x$diameter, WD = x$wd, errWD = x$sd.wd,
-                                       H = x$height, errH = x$height*0.3, Dpropag ='chave2004'),simplify = F)  #assumes 30% height error
+                                       H = x$height, errH = x$height*0.5, Dpropag ='chave2004'),simplify = F)  #assumes 30% height error
   }else{
     mc <- by(plot, plot$id,
              function(x) AGBmonteCarlo(D = x$diameter, WD = x$wd, errWD = x$sd.wd,
@@ -43,10 +43,7 @@ MeasurementErr <- function(plot=plotIND, xy=xyIND, region='India'){
   agb <- unlist(sapply(mc, "[", 1))
   sd <- unlist(sapply(mc, "[", 3))
   
-  #scale values per ha
-  agb <- agb / blowup
-  sd <- sd / blowup
-    
+
   #add XY
   plot.fin <- left_join(plot, xy, by = c('id' = 'id')) #needs full to avoid gaps
 
@@ -58,6 +55,10 @@ MeasurementErr <- function(plot=plotIND, xy=xyIND, region='India'){
   plot.fin$y <- as.numeric(plot.fin$y)
   
   plot.fin <- plot.fin %>% group_by(id) %>% summarise_all(funs(mean)) 
+  
+  #scale values per ha
+  agb <- agb / (plot.fin$size/10000)
+  sd <- sd / (plot.fin$size/10000)
   plot.fin$agb <- agb
   plot.fin$sd <- sd
   plot.fin <- as.data.frame(plot.fin[,c("id","x","y", 'size', 'year', 'agb', 'sd')]) # retain columns of interest
