@@ -8,35 +8,37 @@
 # Sytze de Bruin, Laboratory of Geo-information Science and Remote Sensing, 
 # Wageningen University. e-mail: sytze.debruin@wur.nl
 
-# INDENDENT CODES ARE OPTIONAL 
+# INDETED CODES ARE OPTIONAL 
 
 ## ------------------ Preliminaries ------------------
 rm(list=ls())
 
-# packages
+# Packages
 if (!require("pacman")) install.packages("pacman")
 pacman::p_load(rgdal,rgeos,raster,plyr,dplyr,foreach,purrr,BIOMASS,data.table,
                parallel,doParallel,plotrix,gfcanalysis,sf,stringr, randomForest,BIOMASS)
 
-# global variables
-mainDir <- "C:/Plot2Map"
-scriptsDir <- "C:/Plot2Map/scripts" 
-outDir <- "C:/Plot2Map/results"
-dataDir <- "C:/Plot2Map/data"
+# Global variables, adapt accordingly e.g. "C:/PlotToMap"
+mainDir <- "F:/PlotToMap"
+scriptsDir <- "F:/PlotToMap/scripts" 
+outDir <- "F:/PlotToMap/results"
+dataDir <- "F:/PlotToMap/data"
 plotsFile <- 'SamplePlots.csv'
 SRS <- CRS('+init=epsg:4326')
-flDir <- 'E:/GFCFolder' 
-agbTilesDir <- "E:/CCIBiomass" #*
-treeCoverDir <- 'E:/treecover2010_v3' #*
+flDir <- 'F:/GFCFolder' 
+
 forestTHs <- 10 
 mapYear <- 18
 mapRsl <- 100
 AGBown <- 'NA'
 plots <- 'NA'
-   
-  #* for independent map validation only (be sure to download/access tiles)
 
-# functions
+agbTilesDir <- "F:/ESACCI-BIOMASS-L4-AGB-MERGED-100m-2010-fv1.0" #*
+treeCoverDir <- 'F:/treecover2010_v3' #*
+   
+  #* make sure to download/access CCI maps and tree cover tiles
+
+# Load all the functions needed
 setwd(scriptsDir)  
 source('Polygonize.R')
 source('Deforested.R')
@@ -83,8 +85,8 @@ plots2 <- BiomePair(plots)
   plots2$AVG_YEAR <- plotsPolyAGB$AVG_YEAR
 
   # 4. PLOT DATA HAS TREE-LEVEL MEASUREMENT? 
-  plotTree<- read.csv(paste0(dataDir, '/RussiaTree.csv')) 
-  xyTree <- read.csv(paste0(dataDir,'/RussiaTreeXY.csv'))
+  plotTree<- read.csv(paste0(dataDir, '/SampleTree.csv')) 
+  xyTree <- read.csv(paste0(dataDir,'/SampleTreeXY.csv'))
   plotTree$id <- factor(plotTree$id, levels=unique(plotTree$id), labels=seq_along(nrow(plotTree)))
   xyTree$id <- factor(xyTree$id, levels=unique(xyTree$id), labels=seq_along(nrow(xyTree)))
   #estimate plot-level AGB using BIOMASS package 
