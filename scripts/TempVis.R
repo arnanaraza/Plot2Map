@@ -16,10 +16,10 @@ HistoTemp <- function(df, year){
   # create a bar graph with fixed agb bins
   h1 <- hist(df$AGB_T_HA_ORIG, plot=F, breaks=25)
   h2 <- hist(df$AGB_T_HA, plot=F, breaks=25)
+  
   png (filename=paste0(outDir,paste0('/histogram_tempfixed_',year,'.png')),  width = 800, height = 600)
   y.ax <- nrow(df) / 4
  # y.ax <-25000
-  
   plot(h1, xaxt="n", col=rgb(0,0,1,1/4), main=main, xlab='AGB(Mg/ha)',ylab='n',
        xlim = c(0,600), ylim=c(0,y.ax),cex.lab=2, cex.axis=1.5, cex.main=2, cex.sub=2)
   axis(1,at=0:6*100, labels=c(0:6*100),cex.lab=2, cex.axis=1.5, cex.main=2, cex.sub=2)

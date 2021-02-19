@@ -15,7 +15,7 @@ rm(list=ls())
 
 # Packages
 if (!require("pacman")) install.packages("pacman")
-pacman::p_load(rgdal,rgeos,raster,plyr,dplyr,foreach,purrr,BIOMASS,data.table,
+pacman::p_load(rgdal,rgeos,raster,plyr,dplyr,foreach,purrr,BIOMASS,data.table,ranger,
                parallel,doParallel,plotrix,gfcanalysis,sf,stringr, randomForest,BIOMASS)
 
 # Global variables, adapt accordingly e.g. "C:/PlotToMap"
@@ -34,7 +34,7 @@ AGBown <- 'NA'
 plots <- 'NA'
 
 agbTilesDir <- "F:/ESACCI-BIOMASS-L4-AGB-MERGED-100m-2010-fv1.0" #*
-treeCoverDir <- 'F:/treecover2010_v3' #*
+treeCoverDir <- 'F:/treecover2010_v3_100m' #*
    
   #* make sure to download/access CCI maps and tree cover tiles
 
@@ -53,19 +53,18 @@ source('Plots.R')
 source('Nested.R')
 source('MeasurementErr.R')
 source('RawPlots.R')
-setwd(mainDir)
+setwd(dataDir)
 
 ## ------------------ Preliminaries and preprocessing -------------------------------
 
-# 1. PLOT DATA IS POINT DATA?
-setwd(dataDir)
+# 1. PLOT DATA IS POINT DATA AND FORMATTED (SEE TECHNICAL DOCUMENTATION)?
 plots <- read.csv(plotsFile) 
-# remove deforested plots  
+# remove deforested plots until the year of the map "map year"
 plots1 <- Deforested(plots,flDir,mapYear) 
 # get biomes and zones
 plots2 <- BiomePair(plots)
 
-  # 2. PLOT DATA IS UNFORMATTED/USING THE DEFAULT FORMAT OF THE SURVEY?
+  # 2. PLOT DATA IS UNFORMATTED i.e. USING DEFAULT FORMAT OF THE SURVEY?
   #asks users about specific column index of required plot variables (id, x, y, agb, size, year)
   plotsFile <- 'SampleUnformattedPlots.csv'
   plots <- RawPlots(read.csv(plotsFile))  # 3 8 5 4 11 10 index
@@ -75,7 +74,8 @@ plots2 <- BiomePair(plots)
   # 3. PLOT DATA IS A POLYGON WITH PLOT CORNER COORDINATES? 
   plotsFile <- 'PolyTropiSAR.csv'  #Labriere et al. 2018 sample data
   plotsPoly <- read.csv(plotsFile)
-  plotsPolyAGB <-  read.csv(paste0(dataDir, '/PolyTropiAGB.csv')) #agb per plot 
+  plotsAGBFile <- 'PolyTropiAGB.csv'
+  plotsPolyAGB <-  read.csv(plotsAGBFile) #agb per plot 
   SRS <- CRS('+init=epsg:32622') #plot data is projected
   plots <- Polygonize(plotsPoly, SRS)
   SRS <- CRS('+init=epsg:4326') 
@@ -91,7 +91,6 @@ plots2 <- BiomePair(plots)
   xyTree$id <- factor(xyTree$id, levels=unique(xyTree$id), labels=seq_along(nrow(xyTree)))
   #estimate plot-level AGB using BIOMASS package 
   plots <- MeasurementErr(plotTree, xyTree, 'World')#includes an SD of measurement error
-  plots
   plots1 <- Deforested(plots,flDir,mapYear) 
   plots2 <- BiomePair(plots)
   
@@ -109,14 +108,13 @@ plots2 <- BiomePair(plots)
 ## ------------------ Measurement error (ONLY for cases #1-3) --------------------------
 
   #Using a pre-trained RF model for plot-level data 
-  rf <- get(load(paste0(dataDir, '/rf1.RData'))[1]) #pre-trained RF model from 8000+ plots across biomes 
-  
+  get(load(paste0(dataDir, '/rf1.RData'))) #pre-trained RF model from 10000+ plots across biomes 
   plotsPred <- plots2[,c('AGB_T_HA','SIZE_HA', 'GEZ')]
   names(plotsPred) <- c('agb', 'size', 'gez')
   plotsPred$size <- plotsPred$size * 10000 #convert size to m2
   plotsPred$gez = factor(plotsPred$gez,
                          levels = c("Boreal","Subtropical","Temperate","Tropical"))
-  plots2$sdTree <- predict(rf, plotsPred)
+  plots2$sdTree <- predict(rf1, plotsPred)[[1]]
   
   
 ## ------------------ Temporal adjustment ------------------------
@@ -147,24 +145,21 @@ rfSE <- ranger(se$cv ~ ., data=se[,c('SIZE_HA','RS_HA','ratio')])
 plots.tf$sdSE <-  (predict(rfSE, plots.tf[,c('SIZE_HA', 'RS_HA', 'ratio')])[[1]] / 100) * mean(plots.tf$AGB_T_HA, na.rm=T)
 
 ## ------------------ Plot uncertainty total ------------
-plots.tf$varTot <- plots.tf$sdTree^2 + plots.tf$sdGrowth^2 +plots.tf$sdSE^2
+plots.tf$varPlot <- plots.tf$sdTree^2 + plots.tf$sdGrowth^2 +plots.tf$sdSE^2
   
 #export new validation data
 setwd(outDir)
 write.csv(plots.tf, paste0('Validation_data_2017map_',Sys.Date(),'.csv'), row.names=FALSE)
 setwd(dataDir)
 
-## ------------------ Forest fraction and plot-to-map comparison of global biomass maps ---------------------------
-  # use own map! only works for non-aggregated run
-  AGBown <- 'tropiSAR_100m.tif'
-  AGBown <- raster(paste0(dataDir,'/',AGBown))
-  AGBown [AGBown==0] <- NA
+## ------------------ In-house map validation of CCI maps / plot-to-map comparison of global biomass maps ---------------------------
 
-# retrieve zoning groups
+  
+# retrieve regions 
 continents <- unique(na.omit(plots.tf$ZONE))
 biomes <- unique(na.omit(plots.tf$GEZ))
 
-# non-aggregated results
+# non-aggregated continental results
 for(continent in continents){
   cat("Processing: ",continent,"\n")
   
@@ -187,7 +182,7 @@ for(continent in continents){
 for(continent in continents){
   cat("Processing: ",continent,"\n")
   
-  AGBdata <- invDasymetry("ZONE", continent, 0.1, 10, is_poly=FALSE, own=FALSE)
+  AGBdata <- invDasymetry("ZONE", continent, 0.1, 5, is_poly=FALSE, own=FALSE)
   
   save(AGBdata, file = file.path(outDir,
                                  paste0("agg01_", continent, ".Rdata")))
@@ -224,5 +219,11 @@ for(biome in biomes){
                              Sys.Date(),'.png'), 'harmo')
 }
 
+## ------------------ In-house map validation of own map ---------------------------
 
-
+  # validating own maps, only works for non-aggregated run
+  AGBown <- 'tropiSAR_100m.tif' #use own map!
+  AGBown <- raster(paste0(dataDir,'/',AGBown)) 
+  AGBown [AGBown==0] <- NA
+  
+  

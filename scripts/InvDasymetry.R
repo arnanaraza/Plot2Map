@@ -58,7 +58,7 @@ invDasymetry <- function(clmn = "ZONE", value = "Europe", aggr = NULL,
       rsl <- aggr
     } else {
       # determine resolution output
-      fname <- list.files(agbTilesDir, "*.tif")[1]
+      fname <- list.files(agbTilesDir, "*.tif")[99]
       rsl <- xres(raster(file.path(agbTilesDir, fname)))
     }
     
@@ -73,7 +73,7 @@ invDasymetry <- function(clmn = "ZONE", value = "Europe", aggr = NULL,
     registerDoParallel(cl, nc)
     
     
-    FFAGB <- foreach(i=1:nrow(plots.tf), .combine='rbind', .errorhandling = 'pass',
+    FFAGB <- foreach(i=1:nrow(plots.tf), .combine='rbind',# .errorhandling = 'pass',
                      .packages='raster', .export=c('MakeBlockPolygon', 'SRS',
                                                    'sampleTreeCover', 'TCtileNames',
                                                    'AGBtileNames', 'sampleTreeCover',
@@ -112,8 +112,7 @@ invDasymetry <- function(clmn = "ZONE", value = "Europe", aggr = NULL,
                                                             plots.tf$AGB_T_HA_ORIG[i], 
                                                             sampleAGBmap(pol, wghts2, own), 
                                                             plots.tf$SIZE_HA[i], 
-                                                            plots.tf$POINT_X[i], plots.tf$POINT_Y[i])                                                        
-                                                
+                                                            plots.tf$POINT_X[i], plots.tf$POINT_Y[i])
                                                                        }
                                                 
                                                    }
