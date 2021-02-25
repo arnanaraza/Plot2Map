@@ -19,13 +19,13 @@ pacman::p_load(rgdal,rgeos,raster,plyr,dplyr,foreach,purrr,BIOMASS,data.table,ra
                parallel,doParallel,plotrix,gfcanalysis,sf,stringr, randomForest,BIOMASS)
 
 # Global variables, adapt accordingly e.g. "C:/PlotToMap"
-mainDir <- "F:/PlotToMap"
-scriptsDir <- "F:/PlotToMap/scripts" 
-outDir <- "F:/PlotToMap/results"
-dataDir <- "F:/PlotToMap/data"
+mainDir <- "C:/PlotToMap"
+scriptsDir <- "C:/PlotToMap/scripts" 
+outDir <- "C:/PlotToMap/results"
+dataDir <- "C:/PlotToMap/data"
 plotsFile <- 'SamplePlots.csv'
 SRS <- CRS('+init=epsg:4326')
-flDir <- 'F:/GFCFolder' 
+flDir <- 'C:/GFCFolder' 
 
 forestTHs <- 10 
 mapYear <- 18
@@ -33,8 +33,8 @@ mapRsl <- 100
 AGBown <- 'NA'
 plots <- 'NA'
 
-agbTilesDir <- "F:/ESACCI-BIOMASS-L4-AGB-MERGED-100m-2010-fv1.0" #*
-treeCoverDir <- 'F:/treecover2010_v3_100m' #*
+agbTilesDir <- "C:/ESACCI-BIOMASS-L4-AGB-MERGED-100m-2010-fv1.0" #*
+treeCoverDir <- 'C:/treecover2010_v3_100m' #*
    
   #* make sure to download/access CCI maps and tree cover tiles
 
@@ -67,8 +67,8 @@ plots2 <- BiomePair(plots)
   # 2. PLOT DATA IS UNFORMATTED i.e. USING DEFAULT FORMAT OF THE SURVEY?
   #asks users about specific column index of required plot variables (id, x, y, agb, size, year)
   plotsFile <- 'SampleUnformattedPlots.csv'
-  plots <- RawPlots(read.csv(plotsFile))  # 3 8 5 4 11 10 index
-  plots1 <- Deforested(plots,flDir,mapYear) 
+  plots <- RawPlots(read.csv(plotsFile)) # 3 8 5 4 11 10 index
+  plots1 <- Deforested(plots[1:100,],flDir,mapYear) 
   plots2 <- BiomePair(plots1)
   
   # 3. PLOT DATA IS A POLYGON WITH PLOT CORNER COORDINATES? 
@@ -129,6 +129,7 @@ plots.tf <- ldply(lapply (1:length(gez), function(x)
   TempVar(plots3, gez[[x]], yr)), data.frame) 
 
 #histogram of temporal fix effect
+dir.create(file.path(outDir), recursive = TRUE)
 HistoTemp(plots.tf, yr)
 HistoShift(plots.tf, yr)
 
