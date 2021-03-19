@@ -8,7 +8,10 @@
 # Sytze de Bruin, Laboratory of Geo-information Science and Remote Sensing, 
 # Wageningen University. e-mail: sytze.debruin@wur.nl
 
+
+
 # INDETED CODES ARE OPTIONAL 
+
 
 ## ------------------ Preliminaries ------------------
 rm(list=ls())
@@ -18,17 +21,17 @@ if (!require("pacman")) install.packages("pacman")
 pacman::p_load(rgdal,rgeos,raster,plyr,dplyr,foreach,purrr,BIOMASS,data.table,ranger,
                parallel,doParallel,plotrix,gfcanalysis,sf,stringr, randomForest,BIOMASS)
 
+
 # Global variables, adapt accordingly e.g. "C:/PlotToMap"
 mainDir <- "C:/PlotToMap"
 scriptsDir <- "C:/PlotToMap/scripts" 
 outDir <- "C:/PlotToMap/results"
 dataDir <- "C:/PlotToMap/data"
-plotsFile <- 'SamplePlots.csv'
-SRS <- CRS('+init=epsg:4326')
 flDir <- 'C:/GFCFolder' 
 
+SRS <- CRS('+init=epsg:4326')
 forestTHs <- 10 
-mapYear <- 18
+mapYear <- 18 #if your map is 2018
 mapRsl <- 100
 AGBown <- 'NA'
 plots <- 'NA'
@@ -37,6 +40,7 @@ agbTilesDir <- "C:/ESACCI-BIOMASS-L4-AGB-MERGED-100m-2010-fv1.0" #*
 treeCoverDir <- 'C:/treecover2010_v3_100m' #*
    
   #* make sure to download/access CCI maps and tree cover tiles
+
 
 # Load all the functions needed
 setwd(scriptsDir)  
@@ -55,23 +59,35 @@ source('MeasurementErr.R')
 source('RawPlots.R')
 setwd(dataDir)
 
+
 ## ------------------ Preliminaries and preprocessing -------------------------------
 
-# 1. PLOT DATA IS POINT DATA AND FORMATTED (SEE TECHNICAL DOCUMENTATION)?
-plots <- read.csv(plotsFile) 
-# remove deforested plots until the year of the map "map year"
-plots1 <- Deforested(plots,flDir,mapYear) 
-# get biomes and zones
-plots2 <- BiomePair(plots)
+# 5 cases of plot data from users. Cases 1-2 are plot-level (there is already an AGB estimate)
+# from the user, while Cases 3-5 are data with tree measurements where AGB and SD will be estimated
+# using BIOMASS R package
+  
+  # 1. PLOT DATA IS POINT DATA AND FORMATTED (SEE TECHNICAL DOCUMENTATION)?
+  
+  plotsFile <- 'SamplePlots.csv'
+  plots <- read.csv(plotsFile) 
+  # remove deforested plots until the year of the map "map year"
+  plots1 <- Deforested(plots,flDir,mapYear) 
+  # get biomes and zones
+  plots2 <- BiomePair(plots)
 
+  
   # 2. PLOT DATA IS UNFORMATTED i.e. USING DEFAULT FORMAT OF THE SURVEY?
-  #asks users about specific column index of required plot variables (id, x, y, agb, size, year)
+  #asks users about specific column index of required plot variables
+  #( plot id, longitude, latitude, agb of the plot, plot size, inventory year)
+  
   plotsFile <- 'SampleUnformattedPlots.csv'
   plots <- RawPlots(read.csv(plotsFile)) # 3 8 5 4 11 10 index
-  plots1 <- Deforested(plots[1:100,],flDir,mapYear) 
+  plots1 <- Deforested(plots[1:20,],flDir,mapYear) 
   plots2 <- BiomePair(plots1)
   
+  
   # 3. PLOT DATA IS A POLYGON WITH PLOT CORNER COORDINATES? 
+  
   plotsFile <- 'PolyTropiSAR.csv'  #Labriere et al. 2018 sample data
   plotsPoly <- read.csv(plotsFile)
   plotsAGBFile <- 'PolyTropiAGB.csv'
@@ -84,7 +100,9 @@ plots2 <- BiomePair(plots)
   plots2$AGB_T_HA <- plotsPolyAGB$AGB_T_HA 
   plots2$AVG_YEAR <- plotsPolyAGB$AVG_YEAR
 
+ 
   # 4. PLOT DATA HAS TREE-LEVEL MEASUREMENT? 
+  
   plotTree<- read.csv(paste0(dataDir, '/SampleTree.csv')) 
   xyTree <- read.csv(paste0(dataDir,'/SampleTreeXY.csv'))
   plotTree$id <- factor(plotTree$id, levels=unique(plotTree$id), labels=seq_along(nrow(plotTree)))
@@ -94,7 +112,9 @@ plots2 <- BiomePair(plots)
   plots1 <- Deforested(plots,flDir,mapYear) 
   plots2 <- BiomePair(plots)
   
+  
   # 5. SPECIAL CASE PLOT DATA WITH TREE-LEVEL MEASUREMENT FROM A DATABASE
+  
   cent <- readOGR(dsn = dataDir, layer = "SampleCentroid") #Plot centroid
   tree <- read.csv(paste0(dataDir,'/SampleTreeNested.csv')) #Tree data table
   TreeData <- Nested(cent, tree) #10 24 20 Picea sitchensis 100
@@ -105,6 +125,7 @@ plots2 <- BiomePair(plots)
   plots2 <- BiomePair(plots1)
   
 
+  
 ## ------------------ Measurement error (ONLY for cases #1-3) --------------------------
 
   #Using a pre-trained RF model for plot-level data 
@@ -117,7 +138,9 @@ plots2 <- BiomePair(plots)
   plots2$sdTree <- predict(rf1, plotsPred)[[1]]
   
   
+  
 ## ------------------ Temporal adjustment ------------------------
+  
 # apply growth data to whole plot data by identifying AGB map year
 yr <- 2000+mapYear
 gez <- sort(as.vector((unique(plots2$GEZ)))) #get unique gez and without NA (sorting removes it also)
@@ -138,20 +161,28 @@ HistoShift(plots.tf, yr)
   plots2$sdGrowth <- 0
   plots.tf <- plots2
   
+  
 ## ------------------ Sampling error ---------------------
+  
 plots.tf$RS_HA <- mapRsl^2 / 10000 
 plots.tf$ratio <-  plots.tf$SIZE_HA / plots.tf$RS_HA
 se <- read.csv(paste0(dataDir, '/se.csv'))
 rfSE <- ranger(se$cv ~ ., data=se[,c('SIZE_HA','RS_HA','ratio')])
 plots.tf$sdSE <-  (predict(rfSE, plots.tf[,c('SIZE_HA', 'RS_HA', 'ratio')])[[1]] / 100) * mean(plots.tf$AGB_T_HA, na.rm=T)
 
+
+
 ## ------------------ Plot uncertainty total ------------
+
 plots.tf$varPlot <- plots.tf$sdTree^2 + plots.tf$sdGrowth^2 +plots.tf$sdSE^2
   
+
 #export new validation data
 setwd(outDir)
 write.csv(plots.tf, paste0('Validation_data_2017map_',Sys.Date(),'.csv'), row.names=FALSE)
 setwd(dataDir)
+
+
 
 ## ------------------ In-house map validation of CCI maps / plot-to-map comparison of global biomass maps ---------------------------
 

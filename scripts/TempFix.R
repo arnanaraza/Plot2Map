@@ -105,7 +105,7 @@ TempVar <- function(df, domain, year){
   df.new$sdGrowth <-  abs(df.new$AGB_T_HA - df.new$AGB_T_HA_ORIG)
   retain <- c(names(df0), 'sdGrowth')
   df.new <- df.new[ , (names(df.new) %in% retain)]
-  df.new$AGB_T_HA <- ifelse(is.na(df.new$AGB_T_HA), df.old$AGB_T_HA,df.new$AGB_T_HA)
+  df.new$AGB_T_HA <-  df.old$AGB_T_HA
   df.new$sdGrowth <- ifelse(is.na(df.new$sdGrowth), mean(df.new$sdGrowth,na.rm=T),df.new$sdGrowth)
   return(df.new)
 }
