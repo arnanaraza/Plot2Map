@@ -1,12 +1,23 @@
 ---
-title: "Plot-to-Map: Tool for comparing biomass plots and maps"
-author: "Arnan Araza, PhD candidate, Wageningen University and Research"
-date: "October 15, 2020"
-project: "ESA-CCI Biomass project / PhD topic"
+pagetitle: "Plot-to-Map: Tool for comparing biomass plots and maps"
+author: "Arnan Araza and Sytze de Bruin, Wageningen University and Research"
 output:
-  html_document: default
-  pdf_document: default
+ knitrBootstrap::bootstrap_document:
+    theme: "simplex"
+    highlight: Tomorrow Night Bright
+    menu: FALSE
+    theme.chooser: TRUE
+    highlight.chooser: TRUE
 ---
+# [WUR Mini MOOC] <img src="https://www.wur.nl/upload/5e55a1d9-47c3-4149-9384-26d5147ee2d7_WUR_RGB_standard.png" alt="WUR logo" style="height: 35px;"/>
+
+## Background
+Aboveground biomass (AGB) maps provide data and information of the carbon stored by the terrestrial vegetation. AGB maps are made possible by remote sensing (RS) as satellite signals from vegetations can be translated to biomass. Have a look at this new global map used mainly for climate and carbon modelling: 
+
+
+
+
+
 
 ```{r setup, include=FALSE}
 ## ------------------ Preliminaries ------------------
@@ -14,26 +25,24 @@ rm(list=ls())
 
 # packages
 if (!require("pacman")) install.packages("pacman")
-pacman::p_load(rgdal,rgeos,raster,plyr,dplyr,foreach,purrr,BIOMASS,data.table,
-               parallel,doParallel,plotrix,gfcanalysis,sf,stringr, randomForest,BIOMASS)
+pacman::p_load(rgdal,rgeos,raster,plyr,dplyr,foreach,purrr,data.table,doParallel,plotrix,stringr, gfcanalysis,randomForest,BIOMASS)
 
-# global variables
-mainDir <- "D:/BiomassCCI_2019"
-scriptsDir <- "D:/BiomassCCI_2019/scripts" 
-outDir <- "D:/BiomassCCI_2019/results"
-dataDir <- "D:/BiomassCCI_2019/data"
-#plotsFile <- 'SamplePlots.csv'
-#plotsFile1 <- 'SamplePoly.csv'
-#plotsFile1 <- 'PolyTropiSAR.csv'
-agbTilesDir <- "E:/CCIBiomass" #*
-treeCoverDir <- 'E:/treecover2010_v3' #*
+# Global variables, change accordingly e.g. "C:/PlotToMap"
+mainDir <- "F:/PlotToMap"
+scriptsDir <- "F:/PlotToMap/scripts" 
+outDir <- "F:/PlotToMap/results"
+dataDir <- "F:/PlotToMap/data"
+
+# This variable should be elsewhere as Hansen forest loss tiles will be downloaded here later
+flDir <- 'D:/GFCFolder'  
+
 SRS <- CRS('+init=epsg:4326')
-flDir <- 'E:/GFCFolder' 
 forestTHs <- 10 
-mapYear <- 19
+mapYear <- 18 #if your map is 2018
+mapRsl <- 100
 AGBown <- 'NA'
 plots <- 'NA'
-    #* be sure to download/access tiles
+
 
 # functions
 setwd(scriptsDir)  
@@ -55,8 +64,7 @@ setwd(mainDir)
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Background
-Aboveground biomass (AGB) maps provide data and information of the carbon stored by the terrestrial vegetation. AGB maps are made possible by remote sensing (RS) as satellite signals from vegetations can be translated to biomass. Have a look at this new global map used mainly for climate and carbon modelling: 
+
 
 ```{r AGB map}
 agb_glob <- raster(paste0(dataDir,'/glob_25km.tif'))
