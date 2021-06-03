@@ -55,7 +55,7 @@ defo <- c()
   }
 
 plt$defo <- defo
-print(plt)
+print(paste('Removed', print(nrow(subset(plt,plt$defo > 0 ))), 'plots that have been deforested'))
 defPlt <- subset(plt, plt$defo > 0 ) #if there is deforestation
 defPlt <- subset(defPlt, defPlt$defo <= map_year)#if plot is older or equal to map year
 netPlt <- setdiff(plt, defPlt)[,-length(defPlt)] #removes defo checker column

@@ -1,6 +1,8 @@
 ###FUNCTION TO CREATE ACCURACY TABLE AFTER PLOT-MAP VALIDATION
 
 Accuracy <- function(df=plotsBACC, intervals=8, dir=resultsFolder, str=''){
+  df$sdMap <- 1
+  df$sdPlot <- 1
   
   #assign AGB bins
   if (intervals == 8){
@@ -92,13 +94,12 @@ Accuracy <- function(df=plotsBACC, intervals=8, dir=resultsFolder, str=''){
   df.new1 <- cbind (df.new, bias = df.new[4] - df.new[3])
   names(df.new1) <- c('AGB bin (Mg/ha)','n', 'AGBref (Mg/ha)', 'AGBmap (Mg/ha)',  
                       'RMSD','varPlot', 'varMap', 'IVar', 'AGBmap-AGBref')
-  df.new1 <- na.omit(df.new1[, c('AGB bin (Mg/ha)','n', 'AGBref (Mg/ha)', 'AGBmap (Mg/ha)',
-                                 'AGBmap-AGBref',
-                                 'RMSD','varPlot', 'varMap', 'IVar')] )
+  df.new1 <- na.omit(df.new1)
   
   df.new1$IVar <- ifelse(df.new1$IVar < 0, 0, 1)
   df.new1$RMSD <- sqrt(df.new1$RMSD)
   df.new1 <- round_df(df.new1, 0)
+  df.new1 <- df.new1[,-c(7:9)]
   write.csv(df.new1, paste0(dir,'/acc_',str, '.csv'), row.names = F)
   return(df.new1)
 }

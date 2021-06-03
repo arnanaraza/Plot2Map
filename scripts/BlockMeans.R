@@ -38,6 +38,8 @@ sampleTreeCover <- function(pol, thresholds, wghts=FALSE){
 sampleAGBmap <- function(pol, wghts=FALSE, own=TRUE){
   
   if (own==T){
+    AGBown [AGBown==0] <- NA
+    
     vls <- matrix(ncol=2, nrow=0)
     vls <- rbind(vls, extract(AGBown, pol, weights=TRUE, 
                               normalizeWeights=FALSE)[[1]])

@@ -33,7 +33,7 @@ MeasurementErr <- function(plot=plotIND, xy=xyIND, region='India'){
   if("height" %in% colnames(plot)){
     mc <- by(plot, plot$id,
              function(x) AGBmonteCarlo(D = x$diameter, WD = x$wd, errWD = x$sd.wd,
-                                       H = x$height, errH = x$height*0.5, Dpropag ='chave2004'),simplify = F)  #assumes 30% height error
+                                       H = x$height, errH = x$height, Dpropag ='chave2004'),simplify = F)  
   }else{
     mc <- by(plot, plot$id,
              function(x) AGBmonteCarlo(D = x$diameter, WD = x$wd, errWD = x$sd.wd,
@@ -63,7 +63,7 @@ MeasurementErr <- function(plot=plotIND, xy=xyIND, region='India'){
   plot.fin$sd <- sd
   plot.fin <- as.data.frame(plot.fin[,c("id","x","y", 'size', 'year', 'agb', 'sd')]) # retain columns of interest
   plot.fin$size <- plot.fin$size / 10000
-  names(plot.fin) <- c('pltID', 'POINT_X', 'POINT_Y', 'SIZE_HA', 'AVG_YEAR', 
+  names(plot.fin) <- c('PLOT_ID', 'POINT_X', 'POINT_Y', 'SIZE_HA', 'AVG_YEAR', 
                        'AGB_T_HA', 'sdTree')
   return(plot.fin)
  
