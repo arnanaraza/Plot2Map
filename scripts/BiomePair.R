@@ -14,10 +14,8 @@ BiomePair <- function(df){
   re  <- st_as_sf(zone)
   
   ## intersect polygons with points, keeping the information from both
- # intZone <- st_intersection(p,st_make_valid(re))
   intFez0 <- st_intersection(p,st_make_valid(li))
   df <- st_intersection(st_make_valid(re),intFez0)
-  #intZone0 <- intZone0 %>% select(-contains(".1"))
 
   
   #order first before joining
@@ -43,8 +41,6 @@ BiomePair <- function(df){
                         'Europe', df$ZONE)
   
   plt <- as.data.frame(df)
-  #plt <- plt[order(plt$POINT_Y), ]
-  #plt$ZONE <- if(is.na(plt$ZONE)) plt$ZONE else plt$ZONE
   plt$POINT_X <- st_coordinates(plt$geometry)[,1]
   plt$POINT_Y <- st_coordinates(plt$geometry)[,2]
   plt <- plt[ , -which(names(plt) %in% "geometry")]
