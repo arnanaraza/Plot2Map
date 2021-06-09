@@ -43,6 +43,11 @@ TempApply <- function(df, domain, year){
   df.new <- rbind(below,above,static)
   df.new$AGB_T_HA_ORIG <- df.new$AGB_ORIG
   
+  #checker of rows
+  if (sum(nrow(df.old)) == sum(nrow(df.new))) {
+    print ('growth rates applied correspondingly per eco-region!')}
+  else {print('something is wrong..row sums not equal..')}
+  
   #remove last joined growth rates columns for further row binding 
   remove <- c('GR1', 'GR2', 'GR3', 'AGB_ORIG')
   df.new <- df.new[ , !(names(df.new) %in% remove)]
@@ -90,6 +95,11 @@ TempVar <- function(df, domain, year){
   #combine all: static and recomputed
   df.new <- rbind(below,above,static)
   
+  
+  #checker of rows
+  if (sum(nrow(df.old)) == sum(nrow(df.new))) {
+    print ('growth rates applied correspondingly per eco-region!')}
+  else {print('something is wrong..row sums not equal..')}
   
   #retain last joined growth rates columns for further row binding 
   df.new$sdGrowth <-  abs(df.new$AGB_T_HA - df.new$AGB_T_HA_ORIG)
