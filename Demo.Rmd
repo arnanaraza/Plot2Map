@@ -11,13 +11,13 @@ pagetitle: 'Plot-to-Map: Tool for comparing biomass plots and maps'
 ---
 ```{r, echo=FALSE, message=FALSE}
 library(knitr)
-opts_chunk$set(fig.width=5, fig.align='center', fig.height=5, dpi=72)
+opts_chunk$set(fig.width=10, fig.align='center', fig.height=5, dpi=72)
 ```
 
 # [WUR mini MOOCs] <img src="https://www.wur.nl/upload/5e55a1d9-47c3-4149-9384-26d5147ee2d7_WUR_RGB_standard.png" alt="WUR logo" style="height: 35px;"/>
 
 
-Being able to:
+At the end of this tutorial, students would be able to:
 
   - Understand the sources of uncertainties when validating AGB maps
   - Quantify these uncertainties and compare estimates of AGB from plots and maps to assess map accuracy
@@ -27,22 +27,19 @@ Being able to:
 
 # Packages
 if (!require("pacman")) install.packages("pacman")
-pacman::p_load(rgdal,sf,rgeos,raster,plyr,dplyr,foreach,purrr,data.table,doParallel,plotrix,stringr, gfcanalysis,ranger,BIOMASS,knitrBootstrap,hydroGOF)
+pacman::p_load(raster,rgdal,sf,rgeos,plyr,dplyr,doParallel,foreach,purrr,data.table,plotrix,stringr,ranger,BIOMASS,knitrBootstrap,hydroGOF)
 options(warn=-1)
 
-# Directories - change accordingly e.g. "C:/PlotToMap"
-mainDir <- "F:/PlotToMap"
-scriptsDir <- "F:/PlotToMap/scripts" 
-outDir <- "F:/PlotToMap/results"
-dataDir <- "F:/PlotToMap/data"
-
-# This variable should be elsewhere as Hansen forest loss tiles will be downloaded here later
-flDir <- 'D:/GFCFolder'  
+# Directories - change accordingly
+mainDir <- "C:/PlotToMap_MOOC"
+scriptsDir <- "C:/PlotToMap_MOOC/scripts" 
+outDir <- "C:/PlotToMap_MOOC/results"
+dataDir <- "C:/PlotToMap_MOOC/data"
 
 # Other variables needed 
 SRS <- CRS('+init=epsg:4326')
 forestTHs <- 10 # 10% onwards tree cover are assumed forests
-mapYear <- 18 #if the map is 2018
+mapYear <- 10 #if the map is 2010
 mapRsl <- 100 #spatial scale of map
 plots <- 'NA'
 
@@ -51,11 +48,11 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 ## Background
-Aboveground biomass (AGB) maps provide data and information of the carbon stored by the terrestrial vegetation. AGB maps are created through remote sensing (RS) as satellite images and their signals of the forests and other woody vegetation can be translated to biomass. AGB is also considered to be an Essential Climate Variable (ECV) due to its value for climate and carbon modelling. Have a look at this new global AGB map produced using Synthetic Apertrure Radar (SAR) at 100 m spatial scale:
+Aboveground biomass (AGB) maps provide data and information of the carbon stored by the terrestrial vegetation. AGB maps are created through remote sensing (RS) as satellite images and their signals of the forests and other woody vegetation can be translated to biomass. AGB is also considered to be an Essential Climate Variable (ECV) due to its value for climate and carbon modelling. Have a look at this new global AGB map produced using Synthetic Apertrure Radar (SAR) at 100 m spatial scale (here we look at a resampled coarser map for viewing purposes):
 
 
 ```{r AGB map}
-agb_glob <- raster(paste0(dataDir,'/glob_25km.tif'))
+agb_glob <- raster(paste0(dataDir,'/GlobBiomass_25km.tif'))
 plot(agb_glob, main='GlobBiomass 2010 (Mg/ha)')
 ```
 
@@ -63,27 +60,19 @@ These spatially explicit maps have been created over the past decade mostly for 
 
 But these maps can be imperfect as there are several reported limitations when using spaceborne images to produce AGB maps i.e. signal saturation, leading to potential bias in the maps. But how do we validate these biases, in other words, how do we validate the maps? 
 
-Usually, an "independent" validation is needed using in-situ/ground-truth data i.e. biomass plot data. But like the maps, plot data are not error-free. Have a look at this boxplot of plot uncertainty (in standard deviation; SD) when using small plots below 0.3ha for validating a global map of 1 km pixel size. 
+Usually, an "independent" validation is needed using in-situ/ground-truth data i.e. biomass plot data. But like the maps, plot data are not error-free. Have a look at this boxplot of plot uncertainty (in standard deviation; SD) when using small plots that are < 0.3 ha for validating a global map of 1 km pixel size. 
 
 
 ```{r}
 sd_samp <- read.csv(paste0(dataDir,'/sd_plt.csv'))
-boxplot(sd_samp$sd, main='uncertainty (Mg/ha) of small plots when compared with AGB map (1km)')
+boxplot(sd_samp$sd, main='Uncertainty (Mg/ha) of small plots when compared with AGB map (1 km)')
 ```
-
-
-#Aside from global applications, AGB maps are generated to have carbon numbers for national reporting i.e. REDD+. 
-
-#```{r echo=FALSE}
-#ph <- raster('D:/Internship_BAKCUP/data/rf_2018-06-02 04_33_15.tif')
-#plot(ph, main='AGB map (Mg/ha), Philippines')
-#```
 
 
 ## Functionalities
 So before comparing plots and maps, their uncertainties should be accounted! That is the main goal of the Plot-to-Map tool (p2m). Here we will estimate three prominent uncertainty sources in the plot data.
 
-The largest plot uncertainty comes from tree measurement because AGB is indirectly measured; destructive harvest or cutting many trees to weigh them is undesirable! So while estimating the biomass of every tree, p2m can also estimate the uncertainty from tree measurement errors. We adopted the error propagation method of BIOMASS R pakcage (Rejou-Mechain et al. 2017) where errors from tree diameter, height, wood density, and allometric model parameters are all propagated using Monte Carlo simulations and respective probability distribution functions (PDF).
+The largest plot uncertainty comes from tree measurement because AGB is indirectly measured; destructive harvest or cutting many trees to weigh them is undesirable! So while estimating the biomass of every tree, p2m can also estimate the uncertainty from tree measurement errors. We adopted the error propagation method of BIOMASS R pakcage (Rejou-Mechain et al. 2017) where errors from tree diameter, height, wood density, and allometric model parameters are all propagated using Monte Carlo simulations and respective probability distribution functions.
 
 For plot data with tree-level measurements, diameter is required and if wood density and tree height are missing, those variables can be obtained from a regional/global database and a Height-Diameter model, respectively. Take a look at the portion of this sample data:
 
@@ -95,7 +84,7 @@ head(plotTree)
 
 This sample data is a research plot in India where plots are 1-ha (size=m2) and is preferred compared to small plots (recall the box plot of SD) since it has the same size with the global map for this exercise at 100 m pixel size.
 
-To estimate the uncertianty from measurement errors, we will use the BIOMASS R package which will give us an estimated AGB per plot and its associated uncertainty (SD), which we can scale into AGB Mg/ha. 
+To estimate the uncertainty from measurement errors, we will use the BIOMASS R package which will give us an estimated AGB per plot and its associated uncertainty (SD), which we can scale into AGB Mg/ha. 
 
 ```{r message=FALSE, warning=FALSE}
 # we only select relatively large trees
@@ -107,26 +96,22 @@ plotTree$genus <- tax$genusCorrected
 plotTree$species <- tax$speciesCorrected
 
 # get wood density using global database; mean WD of family will be assigned for uncorrected taxa
-wd <- getWoodDensity(genus = plotTree$genus, species = plotTree$species, 
-                     stand = plotTree$id, region='World') 
+wd <- getWoodDensity(genus = plotTree$genus, species = plotTree$species, stand = plotTree$id, region='World') 
 plotTree$wd <- wd$meanWD
 plotTree$sd.wd<- wd$sdWD
 
 # Try changing the argument 'region' for some regional data source and check the difference from the WD usign 'World'.
 
 # Compute height from diameter using a Height-Diameter (HD) model. It is possible (and even suggested) to use actual height data if included in the forest inventory. This will include a 
-HDmodel <- modelHD(D = NouraguesHD$D, H = NouraguesHD$H, method='weibull',
-                   useWeight = TRUE)
+HDmodel <- modelHD(D = NouraguesHD$D, H = NouraguesHD$H, method='weibull', useWeight = TRUE)
 dataHlocal <- retrieveH(D = plotTree$diameter, model = HDmodel)
 plotTree$height <- dataHlocal$H
   
 # Run MC simulations now that we have diamter, height and WD, and their SDs. The argument "Dpropag" is the propagation method for diameter using data from destructive harvest in Chave 2004 study. This will estimate AGB and its SD at the stand level
-mc <- by(plotTree, plotTree$id, function(x) 
-  AGBmonteCarlo(D = x$diameter, WD = x$wd, errWD = x$sd.wd, 
-                HDmodel = HDmodel, Dpropag = "chave2004"),simplify = F)
+mc <- by(plotTree, plotTree$id, function(x) AGBmonteCarlo(D = x$diameter, WD = x$wd, errWD = x$sd.wd, HDmodel = HDmodel, Dpropag = "chave2004"),simplify = F)
 
 
-# Get AGB and associated SD at stand-level
+# Get AGB and associated SD at stand-level (you may need some scaling if plot data is not one hectare)
 agb <- unlist(sapply(mc, "[", 1))
 sd <- unlist(sapply(mc, "[", 3))
   
@@ -139,14 +124,11 @@ plotTree$y <- as.numeric(plotTree$y)
 plotHa <- plotTree %>% group_by(id) %>% summarise_all(funs(mean)) 
   
 #scale values per ha
-agb <- agb / (plotHa$size/10000)
-sd <- sd / (plotHa$size/10000)
 plotHa$agb <- agb
 plotHa$sd <- sd
 plotHa <- as.data.frame(plotHa[,c("id","x","y", 'size', 'year', 'agb', 'sd')]) # retain columns of interest
 plotHa$size <- plotHa$size / 10000
-names(plotHa) <- c('pltID', 'POINT_X', 'POINT_Y', 'SIZE_HA', 'AVG_YEAR', 
-                       'AGB_T_HA', 'sdTree')
+names(plotHa) <- c('pltID', 'POINT_X', 'POINT_Y', 'SIZE_HA', 'AVG_YEAR',   'AGB_T_HA', 'sdTree')
 hist(plotHa$sdTree, main='SD of measurement error (Mg/ha)')
 boxplot(plotHa$sdTree, main='SD of measurement error (Mg/ha)')
 ```
@@ -190,6 +172,7 @@ plotsHaSamp <- ldply(lapply (1:length(gez), function(x)
 plotsHaSamp <- ldply(lapply (1:length(gez), function(x) 
   TempVar(plotsHaSamp, gez[[x]], yr)), data.frame) 
 
+
 # Histogram of temporal fix effect (before = plot AGB during plot inventory year; after = plot AGB in 2018 after the adjustment; overlap is included just to highlight unchanged histogram)
 dir.create(file.path(outDir), recursive = TRUE)
 HistoTemp(plotsHaSamp, yr)
@@ -199,9 +182,11 @@ HistoShift(plotsHaSamp, yr)
 
 ```
 
-Another preprocessing step is to scale the plot biomass based on the "forest" variation between the AGB map pixel and plot. This used the global forest change (Hansel et al. 2013) dataset to identify the forest fraction of the map pixel and multiply it to the plot biomass (function "InvDasymetry"). The GFC dataset is also to remove already deforested plots relative to the AGB map epoch (function "Deforested"). 
+Another pre-processing step is to scale the plot biomass based on the "forest" variation between the AGB map pixel and plot. This used the global forest change (Hansel et al. 2013) dataset to identify the forest fraction of the map pixel and multiply it to the plot biomass (function "InvDasymetry"). The GFC dataset is also used to remove already deforested plots relative to the AGB map epoch (function "Deforested"). 
 
-Lastly, weighted comparison of plot data with the AGB map is needed to account for plot uncertainty. The inverse of the plot variance is used to estimate the weighted mean. This is applicable for validating global maps where the comparison is aggregated at coarser scales i.e. 0.1 degree spatial scale From here we load an Rdata of the comparison between the WUR plots and the GEOCARBON map at 0.1 degree. The comparison results can be visualized through binned graphs and with a tabulated summary statistics: 
+Then, the uncertainty from the spatial mismatch between pixel and plots (samping error) is estimated using geostatistical approach. We did not include this estimation due to the on-going integration of such functionality to p2m and since our plot size equals the biomass map pixel.
+
+Lastly, weighted comparison of plot data with the AGB map is needed to account for plot uncertainty. The inverse of the plot variance is used to estimate the weighted mean. This is applicable for validating global maps where the comparison is aggregated at coarser scales i.e. 0.1 degree spatial scale From here we load an Rdata of the comparison between the WUR plots and the GEOCARBON map at 0.1 degree for the global climate and carbon modellers. The comparison results can be visualized through binned graphs and with a tabulated summary statistics: 
 
 ## Results
 ```{r}
@@ -213,18 +198,18 @@ Binned(plots01$plotAGB_10, plots01$mapAGB,outDir, 'GlobBiomass 2010', 'samp.png'
 
 ```
 
-With such comparison at 0.1 degrees, the scatter/random errors can be partially removed ,leaving map bias as the dominant error. Such bias can be predicted using a model-based approach. Once predicted spatially through ecological covariates, bias can be subtracted to the map AGB and partially removed. See paper below currently in-review.
+With such comparison at 0.1 degrees, the scatter/random errors can be partially removed ,leaving map bias as the dominant error. Such bias can be predicted using a model-based approach. Once predicted spatially through ecological covariates, bias can be subtracted to the map AGB and partially removed. See paper below currently under review.
 
 
 Thank you and for more info, you can access Plot-to-map with technical documentation at: 
 
-### More info:
-+ Araza et al., (2021). Comparing aboveground biomass from plots and global maps: Towards a comprehensive uncertainty assessment. Under review. 
-+ https://github.com/arnanaraza/PlotToMap for Shiny App
-+ https://github.com/arnanaraza/BiomassCCI for Local use
-
-### References: 
+## References
++ Araza et al., (2021). A comprehensive framework for assessing the accuracy and uncertainty of global above-ground biomass maps. Under review. 
+## References: 
 + Chave, J., Condit, R., Aguilar, S., Hernandez, A., Lao, S., & Perez, R. (2004). Error propagation and scaling for tropical forest biomass estimates. Philosophical Transactions of the Royal Society of London. Series B: Biological Sciences, 359(1443), 409-420.
-+ Réjou-Méchain, M., Tanguy, A., Piponiot, C., Chave, J., & Hérault, B. (2017). biomass: An r package for estimating above-ground biomass and its uncertainty in tropical forests. Methods in Ecology and Evolution, 8(9), 1163-1167.
++ Rejou-Mechain, M., Tanguy, A., Piponiot, C., Chave, J., & H?rault, B. (2017). biomass: An r package for estimating above-ground biomass and its uncertainty in tropical forests. Methods in Ecology and Evolution, 8(9), 1163-1167.
+
+### Repository
++ https://github.com/arnanaraza/PlotToMap
 
 
