@@ -5,9 +5,10 @@ TempApply <- function(df, domain, year){
   gr$ZONE <- as.character(gr$ZONE)
   gr$FAO.ecozone <- as.character(gr$FAO.ecozone)
   
+  df$AVG_YEAR <- as.numeric(df$AVG_YEAR)
   #filter +- 10 years older or newer plots to the map year
-  df <- subset(df, df$AVG_YEAR < year+10 
-               & df$AVG_YEAR > year-10)
+ df <- subset(df, df$AVG_YEAR < year+11
+            & df$AVG_YEAR > year-11)
   
   #filter eco-region first
   df0 <- filter (df, GEZ == domain) #this part doesn't give NAs already

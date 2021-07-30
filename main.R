@@ -31,7 +31,7 @@ flDir <- 'C:/GFCFolder'
 
 SRS <- CRS('+init=epsg:4326')
 forestTHs <- 10 
-mapYear <- 17 #if your map is 2018
+mapYear <- 18
 mapRsl <- 100
 AGBown <- 'NA'
 plots <- 'NA'
@@ -57,8 +57,8 @@ source('Plots.R')
 source('Nested.R')
 source('MeasurementErr.R')
 source('RawPlots.R')
-source('ToDatabase.R')
 source('Accuracy.R')
+source('RefLidar.R')
 setwd(dataDir)
 
 
@@ -78,9 +78,8 @@ setwd(dataDir)
   ## unique plot D, longitude, latitude, AGB of the plot, plot size, inventory year
   
   plotsFile <- 'SampleUnformattedPlots.csv'
-  plots <- RawPlots(read.csv(plotsFile)) # 3 8 5 4 11 10 index
-  plots1 <- Deforested(plots,flDir,mapYear) 
-  plots2 <- BiomePair(plots1)
+  plotsFile <- 'nl_3mort_2018.csv'
+  plots <- RawPlots(read.csv(plotsFile)) # 3 8 5 4 11 10 index #### 3 37 10 9 11 5 #4 56 11 10 12 6
   
   
   ## (3) PLOT DATA IS A POLYGON WITH PLOT CORNER COORDINATES
@@ -122,12 +121,20 @@ setwd(dataDir)
   plots <- MeasurementErr(plotTree, xyTree, 'Europe')
   
   
-## Remote deforested plots until year of map epoch and assign biomes/eco-regins 
+  ## (6) REFERENCE DATA IS A LIDAR-BASED MAP
 
-plots1 <- Deforested(plots,flDir,mapYear)
-plots2 <- BiomePair(plots1) 
-
+  slb.agb.dir <- './SustainableLandscapeBrazil_v04/SLB_AGBmaps'
+  slb.cv.dir <- './SustainableLandscapeBrazil_v04/SLB_CVmaps'
+  slb.cv <- RefLidar(slb.cv.dir, 2018) #1 7, 9 12 for ID and year
+  plots <- RefLidar(slb.agb.dir, 2018) #1 7, 9 12 for ID and year
+  plots$sdTree <- slb.cv$CV * plots$AGB_T_HA
   
+## Remote deforested plots until year of map epoch and assign biomes/eco-regins 
+plots1 <- Deforested(plots,flDir,mapYear)
+plots2 <- BiomePair(plots) 
+
+
+
 ## ------------------ Measurement error (ONLY for plot data cases #1-3) --------------------------
 
   ## Using a pre-trained RF model for plot-level data 
@@ -154,29 +161,29 @@ dir.create(file.path(outDir), recursive = TRUE)
 HistoTemp(plots.tf, yr)
 HistoShift(plots.tf, yr)
 
-  
-## ------------------ Sampling error -----------------------------------------------------------
-  
-## Estimates SD of pixel and plot sizes differences from geo-simulations of Rejou-Mechain et al. 2014 study
 
+## ------------------ Sampling error -----------------------------------------------------------
+    
+## Estimates SD of pixel and plot sizes differences from geo-simulations of Rejou-Mechain et al. 2014 study
+  
 plots.tf$RS_HA <- mapRsl^2 / 10000 
 plots.tf$ratio <-  plots.tf$SIZE_HA / plots.tf$RS_HA
 se <- read.csv(paste0(dataDir, '/se.csv'))
 rfSE <- ranger(se$cv ~ ., data=se[,c('SIZE_HA','RS_HA','ratio')])
 plots.tf$sdSE <-  (predict(rfSE, plots.tf[,c('SIZE_HA', 'RS_HA', 'ratio')])[[1]] / 100) * mean(plots.tf$AGB_T_HA, na.rm=T)
-
-
-
+  
+  
+  
 ## ------------------ Plot uncertainty total ---------------------------------------------------
+  
+plots.tf$varPlot <- plots.tf$sdTree^2 + plots.tf$sdSE^2 +plots.tf$sdGrowth^2 
+  
 
-plots.tf$varPlot <- plots.tf$sdTree^2 + plots.tf$sdGrowth^2 +plots.tf$sdSE^2
-
-
-
+  
 ## ------------------ Export validation (and calibration)-ready data ---------------------------
-
+  
 setwd(outDir)
-write.csv(plots.tf, paste0('Validation_data_2010.csv'), row.names=FALSE)
+write.csv(plots.tf, paste0('Validation_data_NL_2018.csv'), row.names=FALSE)
 setwd(dataDir)
 
 
