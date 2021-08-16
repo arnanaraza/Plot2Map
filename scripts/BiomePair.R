@@ -9,13 +9,14 @@ BiomePair <- function(df){
   zone <-readOGR(dsn=dataDir, layer = "world_region")
   
   ## convert it to 'sf'
-  p <- st_as_sf(plots0)
-  li <- st_as_sf(fez)
-  re  <- st_as_sf(zone)
+  sf::sf_use_s2(FALSE)
+  p <- sf::st_as_sf(plots0)
+  li <- sf::st_as_sf(fez)
+  re  <- sf::st_as_sf(zone)
   
   ## intersect polygons with points, keeping the information from both
-  intFez0 <- st_intersection(p,st_make_valid(li))
-  df <- st_intersection(st_make_valid(re),intFez0)
+  intFez0 <- sf::st_intersection(p,li)
+  df <- sf::st_intersection(re,intFez0)
 
   
   #order first before joining
