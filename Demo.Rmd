@@ -200,16 +200,20 @@ Binned(plots01$plotAGB_10, plots01$mapAGB,outDir, 'GlobBiomass 2010', 'samp.png'
 
 With such comparison at 0.1 degrees, the scatter/random errors can be partially removed ,leaving map bias as the dominant error. Such bias can be predicted using a model-based approach. Once predicted spatially through ecological covariates, bias can be subtracted to the map AGB and partially removed. See paper below currently under review.
 
+## Take away questions
++ If you're a consultant and a developing country asks for your opinion on how to best conduct their NFIs, what would be your main recommendations considering the plot-level uncertainty results shown earlier?
+
++ With more global AGB maps being produced, how do you think this validation process would help both map users and producers?
+
 
 Thank you and for more info, you can access Plot-to-map with technical documentation at: 
 
 ## References
 + Araza et al., (2021). A comprehensive framework for assessing the accuracy and uncertainty of global above-ground biomass maps. Under review. 
-## References: 
 + Chave, J., Condit, R., Aguilar, S., Hernandez, A., Lao, S., & Perez, R. (2004). Error propagation and scaling for tropical forest biomass estimates. Philosophical Transactions of the Royal Society of London. Series B: Biological Sciences, 359(1443), 409-420.
 + Rejou-Mechain, M., Tanguy, A., Piponiot, C., Chave, J., & H?rault, B. (2017). biomass: An r package for estimating above-ground biomass and its uncertainty in tropical forests. Methods in Ecology and Evolution, 8(9), 1163-1167.
 
 ### Repository
-+ https://github.com/arnanaraza/PlotToMap
++ https://github.com/arnanaraza/PlotToMap ("p2m_minimooc" branch)
 
 
