@@ -3,10 +3,18 @@
 
 
 Deforested <- function(plt=plt, fdir = flFolder, map_year=10){
-if (class(plt)[1] == 'SpatialPolygonsDataFrame'){ 
-  plt <- as.data.frame(plt)}
   
-defo <- c()  
+  if(!"POINT_X" %in% colnames(plt)){
+    plt$POINT_X <- plt$Xnew
+    plt$POINT_Y <- plt$Ynew
+    plt$PLOT_ID <- 1:nrow(plt)
+  }
+  
+  if (class(plt)[1] == 'SpatialPolygonsDataFrame'){ 
+    plt <- as.data.frame(pt)
+  }
+  
+  defo <- c()  
   for (p in 1:nrow(plt)){
     
     #make a square polygon from plot size
@@ -46,19 +54,23 @@ defo <- c()
       for(f in fnms){
         if(file.exists(f))
           vls <- c(vls, extract(raster(f), pol)[[1]])
-        }
+      }
     }
     vls <- if(length(vls[vls==0]) > length(vls[vls>0])) vls*0 else(c(vls)) 
-      #if there is more non-deforested (zeros)
+    #if there is more non-deforested (zeros)
+    print(vls)
+    vls[vls>0] <- 1
     
-    defo[p] <- mean(vls[vls>0], na.rm=T) # exact 0 means no deforestation, will return NaN
+    defo[p] <- sum(vls[vls>0], na.rm=T) # exact 0 means no deforestation, will return NaN
+    print(defo[p])
   }
-
-plt$defo <- defo
-print(paste('Removed', print(nrow(subset(plt,plt$defo > 0 ))), 'plots that have been deforested'))
-defPlt <- subset(plt, plt$defo > 0 ) #if there is deforestation
-defPlt <- subset(defPlt, defPlt$defo <= map_year)#if plot is older or equal to map year
-netPlt <- setdiff(plt, defPlt)[,-length(defPlt)] #removes defo checker column
-return(list(netPlt, plt)) #returns non-deforested and original plots 
+  
+  plt$defo <- defo
+  thresh <- plt$SIZE_HA * 0.05 
+  print(paste('Removed', print(nrow(subset(plt,plt$defo > thresh ))), 'plots that have >5% change'))
+  defPlt <- subset(plt, plt$defo > 0 ) #if there is deforestation
+  defPlt <- subset(defPlt, defPlt$defo <= map_year)#if plot is older or equal to map year
+  netPlt <- dplyr::select(dplyr::setdiff(plt, defPlt),-defo) #removes defo checker column
+  return(list(netPlt, plt)) #returns non-deforested and original plots 
 }
 

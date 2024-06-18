@@ -1,5 +1,8 @@
 invDasymetry <- function(clmn = "ZONE", value = "Europe", aggr = NULL, 
-                         minPlots = 1, wghts = FALSE, is_poly=TRUE, own=TRUE){
+                         minPlots = 1, wghts = FALSE, is_poly=TRUE, own=TRUE,fmask=NA){
+    if(class(fmask)=='RasterLayer'){
+      fmask <- fmask
+      plot(fmask)}
     # returns a data.frame with (mean) AGB from plots satisfying selection 
     # criteria
     
@@ -78,7 +81,7 @@ invDasymetry <- function(clmn = "ZONE", value = "Europe", aggr = NULL,
                                                    'sampleTreeCover', 'TCtileNames',
                                                    'AGBtileNames', 'sampleTreeCover',
                                                    'sampleAGBmap', 'plots', #for polygon
-                                                   'agbTilesDir', 'treeCoverDir', 'AGBown',
+                                                   'agbTilesDir', 'treeCoverDir', 'AGBown','fmask',
                                                    'forestTHs')) %dopar% {
                                                      
                                                      if (is_poly==TRUE){
@@ -87,18 +90,18 @@ invDasymetry <- function(clmn = "ZONE", value = "Europe", aggr = NULL,
                                                        pol <- MakeBlockPolygon(plots.tf$POINT_X[i], 
                                                                                plots.tf$POINT_Y[i], rsl)
                                                      }
-                                                     if(is.null(aggr)){
+                                                     if(is.null(aggr)){ #no aggregation!
                                                        if(is.na(plots.tf$SIZE_HA[i])){
-                                                         treeCovers <- sampleTreeCover(pol, forestTHs, wghts)
+                                                         treeCovers <- sampleTreeCover(pol, forestTHs, wghts, fmask)
                                                        } else if(plots.tf$SIZE_HA[i] >= 1){
                                                          # ***** if plot size equals 1 ha *****
                                                          treeCovers <- rep(1, length(forestTHs))
                                                        } else {
                                                          # ***** if plot size less than 1 ha *****
-                                                         treeCovers <- sampleTreeCover(pol, forestTHs, wghts)
+                                                         treeCovers <- sampleTreeCover(pol, forestTHs, wghts,fmask)
                                                        }
-                                                     } else
-                                                       treeCovers <- sampleTreeCover(pol, forestTHs, wghts)
+                                                     } else 
+                                                       treeCovers <- sampleTreeCover(pol, forestTHs, wghts,fmask)
                                                      wghts2 <- ifelse(is.null(aggr), FALSE, wghts)
                                                      
                                                      if(!is.null(aggr)){

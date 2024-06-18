@@ -7,9 +7,9 @@ MeasurementErr <- function(plot=plotIND, xy=xyIND, region='India'){
  # print(paste('plot size is', blowup, 'ha'))
 
   #taxonomy correction
-  tax <- correctTaxo(genus = plot$genus, species = plot$species)
-  plot$genus <- tax$genusCorrected
-  plot$species <- tax$speciesCorrected
+  #tax <- correctTaxo(genus = plot$genus, species = plot$species)
+  #plot$genus <- tax$genusCorrected
+  #plot$species <- tax$speciesCorrected
   
   #get wood density
   wd <- getWoodDensity(genus = plot$genus,

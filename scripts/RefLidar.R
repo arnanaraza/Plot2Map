@@ -5,6 +5,7 @@ RefLidar <- function(lidar.dir='D:/AGBC/data/SustainableLandscapeBrazil_v03/SLB_
   newproj <- "+proj=longlat +datum=WGS84"           
   raw <- list.files(lidar.dir)
   yrs <- 2010:2018
+  
   if(!is.na(year)){
     yrs <- setdiff(yrs,year)
     no.match <-  c(yrs,'aux', 'csv', 'pdf', 'RData')
@@ -18,15 +19,33 @@ RefLidar <- function(lidar.dir='D:/AGBC/data/SustainableLandscapeBrazil_v03/SLB_
   }
   setwd(lidar.dir)
   
-  r.files <- lapply(raw1, function(x) raster(x))
+  r.files <- lapply(raw1, function(x) {
+    r <- raster(x)
+    names(r) <- x
+    names(r[[1]]) <- x
+    r})
   
-  if (grepl('utm',crs(r.files[[1]]), fixed = TRUE) == TRUE ){
+  
+  if (grepl('utm', crs(r.files[[1]]), fixed = TRUE) |
+      grepl('meters', crs(r.files[[1]]), fixed = TRUE) |
+      grepl('metre', crs(r.files[[1]]), fixed = TRUE) |
+      grepl('UTM', crs(r.files[[1]]), fixed = TRUE) |
+      grepl('zone', crs(r.files[[1]]), fixed = TRUE) |
+      grepl('NAD', crs(r.files[[1]]), fixed = TRUE)) {
+
     r.files <- lapply(1:length(r.files), function(x) 
       projectRaster(r.files[[x]], crs = newproj,method= 'bilinear'))
-  }else{r.files=lapply(r.files, function(x) 
-    aggregate(x,10,'mean'))}
+    
+    
+  }
+  else{
+  #  r.files=lapply(r.files, function(x) aggregate(x,10,'mean')) no need to aggregate!
+    r.files <- r.files
+  }
   
+  ha <- xres(r.files[[1]]) * 1000
   
+  #pixels to points
   pts.list <- lapply(1:length(r.files), function(x) 
     rasterToPoints(r.files[[x]],spatial = T))
   pts.list <- lapply(pts.list, setNames, nm = 'same_name')
@@ -46,8 +65,8 @@ RefLidar <- function(lidar.dir='D:/AGBC/data/SustainableLandscapeBrazil_v03/SLB_
   pts$PLOT_ID =  substr(pts$ID, id.str[1], id.str[2]) 
 
   print(pts$ID[1])
-  id.str <- c(menu(1:20, title="enter index of the first letter of YEAR"),
-              menu(1:20, title="enter index of the last letter of YEAR"))
+  id.str <- c(menu(1:30, title="enter index of the first letter of YEAR"),
+              menu(1:30, title="enter index of the last letter of YEAR"))
   pts$AVG_YEAR =  substr(pts$ID, id.str[1], id.str[2])
 
   setwd(dataDir)
@@ -58,7 +77,7 @@ RefLidar <- function(lidar.dir='D:/AGBC/data/SustainableLandscapeBrazil_v03/SLB_
     pts <- pts[,c('PLOT_ID', 'POINT_X', 'POINT_Y', 'CV', 'AVG_YEAR')]
   }
     
-  pts$SIZE_HA <-  xres(r.files[[1]])
+  pts$SIZE_HA <- ha
   pts = data.frame(pts)
   pts[,-c(length(pts)-2,length(pts)-1,length(pts))]
 }

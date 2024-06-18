@@ -1,51 +1,51 @@
-GEZ,ZONE,FAO.ecozone,SD1,SD2,SD3,,,,,
-Tropical,Africa,Tropical shrubland,0.675,0.675,0.3375,,,,,
-Tropical,Africa,Tropical rainforest,3.5,3.3,5.9,,,,,
-Tropical,Africa,Tropical mountain system,0.525,1.35,6.8,,,,,
-Tropical,Africa,Tropical moist forest,0.45,0.7,1,,,,,
-Tropical,Africa,Tropical dry forest,1.2,1.2,2.925,,,,,
-NA,Asia,NA,0.375,1.8,2.775,,,,,
-Subtropical,Asia,Subtropical mountain system,0,0.375,1.875,,,,,
-Tropical,Asia,Tropical rainforest,2.2,3.1,3.9,,,,,
-Tropical,Asia,Tropical mountain system,3.1,0.4,0.1,,,,,
-Tropical,Asia,Tropical moist forest,0.45,0.675,0.3,,,,,
-Tropical,Asia,Tropical dry forest,0.75,1.2,2.925,,,,,
-NA,Australia,NA,0,0.45,0.675,,,,,
-NA,Australia,Subtropical desert,0,0.45,0.675,,,,,
-NA,Australia,Tropical desert,0.75,0.75,3,,,,,
-Subtropical,Australia,Subtropical dry forest,0.75,0.75,3,,,,,
-Subtropical,Australia,Subtropical humid forest,0,0.375,1.875,,,,,
-Subtropical,Australia,Subtropical steppe,0.75,0.75,3,,,,,
-Temperate,Australia,Temperate mountain system,0,100,3.6,,,,,
-Temperate,Australia,Temperate oceanic forest,0.85,0.82,0.83,,,,,
-Tropical,Australia,Tropical shrubland,0.75,0.75,3,,,,,
-Tropical,Australia,Tropical rainforest,2,1.1,2.5,,,,,
-Tropical,Australia,Tropical dry forest,0,1.1,2.4,,,,,
-NA,C.America,NA,0.5025,1.3275,2.19,, ,,,
-Subtropical,C.America,Subtropical mountain system,0,0.375,1.875,,,,,
-Tropical,C.America,Tropical rainforest,2,1.1,2.5,,,,,
-Tropical,C.America,Tropical mountain system,1.9,0.8,1.6,,,,,
-Tropical,C.America,Tropical moist forest,2.1,1.7,2.3,,,,,
-Tropical,C.America,Tropical dry forest,0,1.1,2.4,,,,,
-Subtropical,C.America,Subtropical steppe,0.75,0.75,3,,,,,
-Boreal,Europe,Boreal coniferous forest,0,0,0,,,,,
-Boreal,Europe,Boreal mountain system,0,0,0,,,,,
-NA,Europe,NA,0.75,0.75,0.75,,,,,
-Subtropical,Europe,Subtropical dry forest,0.75,0.75,3,,,,,
-Subtropical,Europe,Subtropical mountain system,0,0.375,1.875,,,,,
-Temperate,Europe,Temperate continental forest,0,15,5.2,,,,,
-Temperate,Europe,Temperate mountain system,0,100,3.6,,,,,
-Temperate,Europe,Temperate oceanic forest,0,0,0,,,,,
-Boreal,N.America,Boreal mountain system,0,0,0,,,,,
-Boreal,N.America,Boreal tundra woodland,0.3,0.3,0.3,,,, ,
-NA,N.America,NA,0.5025,1.3275,2.19,,,,,
-NA,N.America,Polar,0.5025,1.3275,2.19,,,,,
-Temperate,N.America,Temperate continental forest,0,15,5.2,,,,,
-Temperate,N.America,Temperate mountain system,0,100,3.6,,,,, 
-Tropical,S.America,Tropical rainforest,2,1.1,2.5,,,,,
-Tropical,S.America,Tropical mountain system,1.9,0.8,1.6,,,,,
-Tropical,S.America,Tropical moist deciduous forest,2.1,1.7,2.3,,,,,
-Tropical,S.America,Tropical dry forest,0,1.1,2.4,,,,,
-Tropical,Asia,Tropical moist deciduous forest,2.1,1.7,2.3,,,,,
-Tropical,Africa,Tropical moist deciduous forest,2.1,1.7,2.3,,,,,
-Subtropical,Australia,Subtropical desert,0,0.45,0.675,,,,,
+GEZ,ZONE,FAO.ecozone,SD1,SD2,SD3
+Tropical,Africa,Tropical shrubland,0.675,0.675,0.3375
+Tropical,Africa,Tropical rainforest,3.5,3.3,5.9
+Tropical,Africa,Tropical mountain system,0.525,1.35,6.8
+Tropical,Africa,Tropical moist forest,0.45,0.7,1
+Tropical,Africa,Tropical dry forest,1.2,1.2,2.925
+NA,Asia,NA,0.375,1.8,2.775
+Subtropical,Asia,Subtropical mountain system,0,0.375,1.875
+Tropical,Asia,Tropical rainforest,2.2,3.1,3.9
+Tropical,Asia,Tropical mountain system,3.1,0.4,0.1
+Tropical,Asia,Tropical moist forest,0.45,0.675,0.3
+Tropical,Asia,Tropical dry forest,0.75,1.2,2.925
+NA,Australia,NA,0,0.45,0.675
+NA,Australia,Subtropical desert,0,0.45,0.675
+NA,Australia,Tropical desert,0.75,0.75,3
+Subtropical,Australia,Subtropical dry forest,0.75,0.75,3
+Subtropical,Australia,Subtropical humid forest,0,0.375,1.875
+Subtropical,Australia,Subtropical steppe,0.75,0.75,3
+Temperate,Australia,Temperate mountain system,0,100,3.6
+Temperate,Australia,Temperate oceanic forest,0.85,0.82,0.83
+Tropical,Australia,Tropical shrubland,0.75,0.75,3
+Tropical,Australia,Tropical rainforest,2,1.1,2.5
+Tropical,Australia,Tropical dry forest,0,1.1,2.4
+NA,C.America,NA,0.5025,1.3275,2.19
+Subtropical,C.America,Subtropical mountain system,0,0.375,1.875
+Tropical,C.America,Tropical rainforest,2,1.1,2.5
+Tropical,C.America,Tropical mountain system,1.9,0.8,1.6
+Tropical,C.America,Tropical moist forest,2.1,1.7,2.3
+Tropical,C.America,Tropical dry forest,0,1.1,2.4
+Subtropical,C.America,Subtropical steppe,0.75,0.75,3
+Boreal,Europe,Boreal coniferous forest,0,0,0
+Boreal,Europe,Boreal mountain system,0,0,0
+NA,Europe,NA,0.75,0.75,0.75
+Subtropical,Europe,Subtropical dry forest,0.75,0.75,3
+Subtropical,Europe,Subtropical mountain system,0,0.375,1.875
+Temperate,Europe,Temperate continental forest,0,15,5.2
+Temperate,Europe,Temperate mountain system,0,100,3.6
+Temperate,Europe,Temperate oceanic forest,0,0,0
+Boreal,N.America,Boreal mountain system,0,0,0
+Boreal,N.America,Boreal tundra woodland,0.3,0.3,0.3
+NA,N.America,NA,0.5025,1.3275,2.19
+NA,N.America,Polar,0.5025,1.3275,2.19
+Temperate,N.America,Temperate continental forest,0,15,5.2
+Temperate,N.America,Temperate mountain system,0,10,3.6
+Tropical,S.America,Tropical rainforest,2,1.1,2.5
+Tropical,S.America,Tropical mountain system,1.9,0.8,1.6
+Tropical,S.America,Tropical moist deciduous forest,2.1,1.7,2.3
+Tropical,S.America,Tropical dry forest,0,1.1,2.4
+Tropical,Asia,Tropical moist deciduous forest,2.1,1.7,2.3
+Tropical,Africa,Tropical moist deciduous forest,2.1,1.7,2.3
+Subtropical,Australia,Subtropical desert,0,0.45,0.675

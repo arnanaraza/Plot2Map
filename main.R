@@ -16,31 +16,40 @@
 ## ------------------ Preliminaries ------------------
 rm(list=ls())
 
-# Packages
+## Packages installation
 if (!require("pacman")) install.packages("pacman")
-pacman::p_load(rgdal,rgeos,raster,plyr,dplyr,foreach,purrr,BIOMASS,data.table,ranger,randomForest,
-               parallel,doParallel,plotrix,gfcanalysis,sf,stringr,Metrics)
+  pacman::p_load(terra,plyr,dplyr,foreach,purrr,BIOMASS,data.table,ranger,randomForest,
+               doParallel,plotrix,gfcanalysis,sf,stringr,Metrics)
 
 
-# Global variables, adapt accordingly e.g. "C:/PlotToMap"
+## Define global variables and folder directories, adapt accordingly e.g. "C:/PlotToMap"
 mainDir <- "C:/PlotToMap"
 scriptsDir <- "C:/PlotToMap/scripts" 
 outDir <- "C:/PlotToMap/results"
 dataDir <- "C:/PlotToMap/data"
-flDir <- 'C:/GFCFolder' 
+flDir <- 'C:/GFCFolder' #should be outside the main directory because GFC tiles will be downloaded here
 
 SRS <- CRS('+init=epsg:4326')
-forestTHs <- 10 
-mapYear <- 18
-mapRsl <- 100
+
+## Set forest threshold into FAO-suggested 10% and above tree cover 
+forestTHs <- 10
+
+
+## Validate own map? 
 AGBown <- 'NA'
-plots <- 'NA'
 
-agbTilesDir <- "C:/ESACCI-BIOMASS-L4-AGB-MERGED-100m-2010-fv3.0" #*
-treeCoverDir <- 'C:/treecover2010_v3' #*
-   
-  #* make sure to download/access CCI maps and tree cover tiles
+## Map and tree cover directories that SHOULD BE PRE-DOWNLOADED! See download script for CCI maps. 
+agbTilesDir <- "D:/ESACCI-BIOMASS-L4-AGB-MERGED-100m-2020-fv5.0"
+treeCoverDir <- 'C:/treecover2010_v3_100m'
+#treeCoverDir <- 'D:/treecover2010_v3'
 
+## The map epoch , works if 
+mapYear <- as.numeric(str_sub(str_extract(agbTilesDir, "\\d{4}"), -2, -1))
+#mapYear <- 20
+
+## The map spatial resolution
+mapRsl <- as.numeric(str_replace(str_extract(agbTilesDir, "\\d{3}m"), "m", ""))
+#mapRsl <- 100 
 
 # Load all the functions needed
 setwd(scriptsDir)  
@@ -53,6 +62,7 @@ source('MakeBlockPolygon.R')
 source('TileNames.R')
 source('BlockMeans.R')
 source('invDasymetry.R')
+source('invDasymetry_NoPar.R')
 source('Plots.R')
 source('Nested.R')
 source('MeasurementErr.R')
@@ -78,19 +88,16 @@ setwd(dataDir)
   ## unique plot D, longitude, latitude, AGB of the plot, plot size, inventory year
   
   plotsFile <- 'SampleUnformattedPlots.csv'
-  plotsFile <- 'nl_3mort_2018.csv'
-  plots <- RawPlots(read.csv(plotsFile)) # 3 8 5 4 11 10 index #### 3 37 10 9 11 5 #4 56 11 10 12 6
-  
-  
+  plots <- RawPlots(read.csv(plotsFile)) 
+
   ## (3) PLOT DATA IS A POLYGON WITH PLOT CORNER COORDINATES
   
   plotsFile <- 'PolyTropiSAR.csv'  #Labriere et al. 2018 sample data
   plotsAGBFile <- 'PolyTropiAGB.csv'
   plotsPoly <- read.csv(plotsFile) 
   plotsPolyAGB <-  read.csv(plotsAGBFile) #plot-level AGB  
-  SRS <- CRS('+init=epsg:32622') #plot data is projected
+  SRS <- 32622 #plot data is projected
   plots <- Polygonize(plotsPoly, SRS)
-  SRS <- CRS('+init=epsg:4326') 
   plots$AGB_T_HA <- plotsPolyAGB$AGB_T_HA 
   plots$AVG_YEAR <- plotsPolyAGB$AVG_YEAR
 
@@ -104,7 +111,7 @@ setwd(dataDir)
   
   ## Unformatted
   TreeRaw <- read.csv(paste0(dataDir, '/KarnatakaForest.csv')) 
-  rawTree <- RawPlotsTree(TreeRaw) #1 4 5 6 2 8 7 9 10
+  rawTree <- RawPlotsTree(TreeRaw)
   plotTree<- rawTree[[1]] 
   xyTree <- rawTree[[2]]
   
@@ -115,7 +122,7 @@ setwd(dataDir)
   
   cent <- readOGR(dsn = dataDir, layer = "SampleCentroid") #Sub-plot centroid
   tree <- read.csv(paste0(dataDir,'/SampleTreeNested.csv')) #Tree data per sub-plot
-  TreeData <- Nested(cent, tree) #10 24 20 Picea sitchensis 100
+  TreeData <- Nested(cent, tree)
   plotTree <- TreeData[[1]]
   xyTree <- TreeData[[2]]
   plots <- MeasurementErr(plotTree, xyTree, 'Europe')
@@ -125,23 +132,23 @@ setwd(dataDir)
 
   slb.agb.dir <- './SustainableLandscapeBrazil_v04/SLB_AGBmaps'
   slb.cv.dir <- './SustainableLandscapeBrazil_v04/SLB_CVmaps'
-  slb.cv <- RefLidar(slb.cv.dir, 2018) #1 7, 9 12 for ID and year
-  plots <- RefLidar(slb.agb.dir, 2018) #1 7, 9 12 for ID and year
+  slb.cv <- RefLidar(slb.cv.dir, 2018)
+  plots <- RefLidar(slb.agb.dir, 2018)
   plots$sdTree <- slb.cv$CV * plots$AGB_T_HA
-  
+
+
 ## Remote deforested plots until year of map epoch and assign biomes/eco-regins 
 plots1 <- Deforested(plots,flDir,mapYear)
 plots2 <- BiomePair(plots) 
 
 
-
 ## ------------------ Measurement error (ONLY for plot data cases #1-3) --------------------------
 
   ## Using a pre-trained RF model for plot-level data 
-  get(load(paste0(dataDir, '/rf1.RData'))) #pre-trained RF model from 10000+ plots across biomes 
+  load('rf1.RData') #pre-trained RF model from 10000+ plots across biomes 
   plotsPred <- plots2[,c('AGB_T_HA','SIZE_HA', 'GEZ')]
   names(plotsPred) <- c('agb', 'size', 'gez')
-  plotsPred$size <- plotsPred$size * 10000 #convert size to m2
+  plotsPred$size <- as.numeric(plotsPred$size) * 10000 #convert size to m2
   plotsPred$gez = factor(plotsPred$gez,levels = c("Boreal","Subtropical","Temperate","Tropical"))
   plots2$sdTree <- predict(rf1, plotsPred)[[1]]
   
@@ -152,9 +159,10 @@ plots2 <- BiomePair(plots)
 ## Apply growth data to whole plot data by identifying AGB map year with associated SD based on
 ## growth data from IPCC 2019
 yr <- 2000+mapYear
-gez <- sort(as.vector((unique(plots2$GEZ)))) 
+gez <- sort(as.vector((raster::unique(plots2$GEZ)))) 
 plots3 <- ldply(lapply (1:length(gez), function(x) TempApply(plots2, gez[[x]], yr)), data.frame) 
 plots.tf <- ldply(lapply (1:length(gez), function(x) TempVar(plots3, gez[[x]], yr)), data.frame) 
+plots.tf$sdGrowth <- ifelse(is.nan(plots.tf$sdGrowth), mean(plots.tf$sdGrowth,na.rm=T),plots.tf$sdGrowth)
 
 ## Histogram and summary table: before and after temporal adjustment
 dir.create(file.path(outDir), recursive = TRUE)
@@ -167,7 +175,7 @@ HistoShift(plots.tf, yr)
 ## Estimates SD of pixel and plot sizes differences from geo-simulations of Rejou-Mechain et al. 2014 study
   
 plots.tf$RS_HA <- mapRsl^2 / 10000 
-plots.tf$ratio <-  plots.tf$SIZE_HA / plots.tf$RS_HA
+plots.tf$ratio <-  as.numeric(plots.tf$SIZE_HA) / plots.tf$RS_HA
 se <- read.csv(paste0(dataDir, '/se.csv'))
 rfSE <- ranger(se$cv ~ ., data=se[,c('SIZE_HA','RS_HA','ratio')])
 plots.tf$sdSE <-  (predict(rfSE, plots.tf[,c('SIZE_HA', 'RS_HA', 'ratio')])[[1]] / 100) * mean(plots.tf$AGB_T_HA, na.rm=T)
@@ -183,10 +191,8 @@ plots.tf$varPlot <- plots.tf$sdTree^2 + plots.tf$sdSE^2 +plots.tf$sdGrowth^2
 ## ------------------ Export validation (and calibration)-ready data ---------------------------
   
 setwd(outDir)
-write.csv(plots.tf, paste0('Validation_data_NL_2018.csv'), row.names=FALSE)
+write.csv(plots.tf, paste0('ValidationData_',yr,'.csv'), row.names=FALSE)
 setwd(dataDir)
-
-
 
 ## ------------------ Map validation (runs forest fraction correction and plot-to-map comparisons) --------
 
@@ -194,35 +200,14 @@ setwd(dataDir)
 continents <- unique(na.omit(plots.tf$ZONE))
 biomes <- unique(na.omit(plots.tf$GEZ))
 
-  ## Validation of OWN map (for non-aggregated run) 
-  r.name <- 'tropiSAR_100m.tif' 
-  AGBown <- raster(paste0(dataDir,'/',r.name)) 
-  
-  for(continent in continents){
-    cat("Processing: ",continent,"\n")
-    AGBdata <- invDasymetry("ZONE", continent, wghts = TRUE, is_poly =F, own=T)
-    save(AGBdata, file = file.path(outDir,  paste0("InvDasyPlot_", r.name, ".Rdata")))
-                                 
-    Binned(AGBdata$plotAGB_10,AGBdata$mapAGB,
-           continent, paste0('binnedPlt_',r.name,'_',Sys.Date(),'.png'))
-                             
-    Scatter(AGBdata$plotAGB_10,AGBdata$mapAGB,
-            continent, paste0('scatterPlt_',r.name,'_', Sys.Date(),'.png'))
-    
-    Accuracy(AGBdata, 8, outDir, 'SampleRun')
-    
-                             
-  }
-  
-  
-  
+
   ## Validation of GLOBAL AGB maps 
 
   # Non-aggregated continental results
   for(continent in continents){
     cat("Processing: ",continent,"\n")
     
-    AGBdata <- invDasymetry("ZONE", continent, wghts = TRUE, is_poly =F, own=F)
+    AGBdata <- invDasymetry("ZONE", continent, wghts = TRUE, is_poly =F, own=F,fmask=NA)
     
     save(AGBdata, file = file.path(outDir,paste0("InvDasyPlot_", continent, ".Rdata")))
                                    
@@ -236,11 +221,34 @@ biomes <- unique(na.omit(plots.tf$GEZ))
   
   }
   
-  # Results aggregated per 0.1 degree cell per continent
+  # Use of own forest mask 
+  setwd(dataDir)
+  f <- raster('fmask_ph_10km.tif')
+  
   for(continent in continents){
     cat("Processing: ",continent,"\n")
     
-    AGBdata <- invDasymetry("ZONE", continent, 0.1, 5, is_poly=FALSE, own=FALSE)
+    AGBdata <- invDasymetry("ZONE", continent, wghts = TRUE, is_poly =F, own=F, fmask=f)
+    
+    save(AGBdata, file = file.path(outDir,paste0("InvDasyPlot_", continent, ".Rdata")))
+    
+    Binned(AGBdata$plotAGB_10,AGBdata$mapAGB,
+           continent, paste0('binnedPlt_',continent,'_', Sys.Date(),'.png'))
+    
+    Scatter(AGBdata$plotAGB_10,AGBdata$mapAGB,
+            continent, paste0('scatterPlt_',continent,'_', Sys.Date(),'.png'))
+    
+    Accuracy(AGBdata, 8, outDir, 'SampleRun')
+    
+  }
+  
+  
+  # Results aggregated per 0.1 degree cell per continent
+  f <- NA
+  for(continent in continents){
+    cat("Processing: ",continent,"\n")
+    
+    AGBdata <- invDasymetry_NoPar("ZONE", continent, 0.1, 3, is_poly=FALSE, own=FALSE, fmask=f)
     
     save(AGBdata, file = file.path(outDir, paste0("agg01_", continent, ".Rdata")))
                                   
@@ -275,6 +283,33 @@ biomes <- unique(na.omit(plots.tf$GEZ))
   }
 
 
+  ## Validation of OWN map (for non-aggregated run) 
+  r.name <- 'Pedro_AGB_map_combined_2017v2.tif' 
+  AGBown <- raster(paste0('D:/AGBG/data','/',r.name)) 
+  
+  for(continent in continents){
+    cat("Processing: ",continent,"\n")
+    AGBdata <- invDasymetry("ZONE", continent, wghts = TRUE, is_poly =F, own=T)
+    save(AGBdata, file = file.path(outDir,  paste0("InvDasyPlot_", r.name, ".Rdata")))
+    
+    Binned(AGBdata$plotAGB_10,AGBdata$mapAGB,
+           continent, paste0('binnedPlt_',r.name,'_',Sys.Date(),'.png'))
+    
+    Scatter(AGBdata$plotAGB_10,AGBdata$mapAGB,
+            continent, paste0('scatterPlt_',r.name,'_', Sys.Date(),'.png'))
+    
+    Accuracy(AGBdata, 8, outDir, 'PedroMap')
+  }
+  
+  for(continent in continents){
+    cat("Processing: ",continent,"\n")
+    AGBdata <- invDasymetry("ZONE", continent,0.1,5, is_poly =F, own=T)
+    save(AGBdata, file = file.path(outDir,  paste0("agg01", r.name, ".Rdata")))
+    
+    Binned(AGBdata$plotAGB_10,AGBdata$mapAGB,
+           continent, paste0('aggbinnedPlt_',r.name,'_',Sys.Date(),'.png'))
+    Accuracy(AGBdata, 8, outDir, 'PedroMap_agg01')
+  }
   
   
   ## Option to integrate your plot data to the WUR database under data-use agreement? ---------------------------
@@ -282,4 +317,13 @@ biomes <- unique(na.omit(plots.tf$GEZ))
   setwd('D:/AGBG') #should be changed to remote directory of WUR
   write.csv(plots.fin, paste0('Validation_data_2010map_AFR_GHA.csv'), row.names=FALSE)
   
+
+## Bias is revealed i.e. map underestimation 
+  
+## ------------------ Uncertainty modelling -----------------------------------------------------
+
+## The bias modelling follows a model-based approach where bias will be predicted based on 
+## how related it is to environmental variables or covariates aggregated at 10 km
+  
+
   

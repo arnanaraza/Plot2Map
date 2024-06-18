@@ -1,34 +1,43 @@
 ### FUNCTION TO FORMAT PLOTS
 
-RawPlots <- function(plots=plots, mapYear=mapYear){
-  if(is.data.frame(plots) == F){
-    stop('input file should be a data frame with XY coordinates')
+RawPlots <- function(plots, mapYear = NULL) {
+  # Type checking
+  if (!is.data.frame(plots)) {
+    stop('Input file should be a data frame with XY coordinates')
   }
   
-  id <-plots [,menu(names(plots), title="which column is your unique Plot ID?")]
-  agb <- as.numeric(plots [,menu(names(plots), 
-                                      title="which column is your plot AGB?")])
-  x <-as.numeric(plots [,menu(names(plots), 
-                                   title="put longitude  column")])
-  y <-as.numeric(plots [,menu(names(plots), 
-                              title="which column is your latitude")])
-  size <- as.numeric(plots [,menu(names(plots), 
-                                  title="plot size column")])
-  size <- ifelse(size > 50, size/10000, size) #check if m2, if yes convert to ha
-  fez <- NA
-  gez <- NA
-  year <-as.numeric(plots [,menu(names(plots), 
-                                title=" year  column")])
+  # Helper function for column selection or manual entry
+  select_column <- function(prompt) {
+    choice <- menu(c("Manual entry", names(plots)), title = prompt)
+    if (choice == 1) {
+      manual_entry <- readline("Enter the numeric value for manual entry: ")
+      return(as.numeric(manual_entry))
+    } else {
+      return(as.numeric(plots[, choice - 1]))
+    }
+  }
   
+  id <- select_column("Which column is your unique Plot ID?")
+  agb <- select_column("Which column is your plot AGB?")
+  x <- select_column("Select longitude column")
+  y <- select_column("Which column is your latitude?")
+  size <- select_column("Select plot size column")
+  year <- select_column("Select year column")
   
-
-  plt <- data.frame(id,x,y, agb, size, fez, gez, year)
-  names(plt) <- c('PLOT_ID', 'POINT_X', 'POINT_Y', 'AGB_T_HA','SIZE_HA',
-                  'FEZ', 'GEZ', 'AVG_YEAR')
+  # Convert sizes if in m2 to ha
+  size <- ifelse(!is.na(size) & size > 50, size / 10000, size)
   
+  # Initialize unused columns
+  fez <- gez <- NA
   
-  plt
+  # Create and format data frame
+  plt <- data.frame(id, x, y, agb, size, fez, gez, year)
+  names(plt) <- c('PLOT_ID', 'POINT_X', 'POINT_Y', 'AGB_T_HA', 'SIZE_HA', 'FEZ', 'GEZ', 'AVG_YEAR')
+  
+  # Filter rows where AGB is not NA
+  subset(plt, !is.na(plt$AGB_T_HA))
 }
+
 
 
 RawPlotsTree <- function(plots=plots){
