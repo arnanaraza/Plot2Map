@@ -22,18 +22,17 @@ if (!require("pacman")) install.packages("pacman")
                doParallel,plotrix,gfcanalysis,sf,stringr,Metrics)
 
 
-## Define global variables and folder directories, adapt accordingly e.g. "C:/PlotToMap"
-mainDir <- "C:/PlotToMap"
-scriptsDir <- "C:/PlotToMap/scripts" 
-outDir <- "C:/PlotToMap/results"
-dataDir <- "C:/PlotToMap/data"
+## Define global variables and folder directories, adapt accordingly e.g. "C:/Plot2Map"
+mainDir <- "C:/Plot2Map"
+scriptsDir <- "C:/Plot2Map/scripts" 
+outDir <- "C:/Plot2Map/results"
+dataDir <- "C:/Plot2Map/data"
 flDir <- 'C:/GFCFolder' #should be outside the main directory because GFC tiles will be downloaded here
 
 SRS <- CRS('+init=epsg:4326')
 
 ## Set forest threshold into FAO-suggested 10% and above tree cover 
 forestTHs <- 10
-
 
 ## Validate own map? 
 AGBown <- 'NA'
@@ -137,6 +136,15 @@ setwd(dataDir)
   plots$sdTree <- slb.cv$CV * plots$AGB_T_HA
 
 
+  ## (7) PLOT DATA IS A SHAPEFILE 
+  plotsFile <- 'samp_shp.shp'
+  plots_sf <- st_read(plotsFile)
+  plots_sf <- st_transform(plots_sf, crs = 4326)
+  plots_sf$longitude <- st_coordinates(st_centroid(plots_sf))[, 1]
+  plots_sf$latitude <- st_coordinates(st_centroid(plots_sf))[, 2]
+  plots <- RawPlots(plots_sf) # Users should know year, plot size, inventory year beforehand for manual entry if ever missing in the shapefiles'attributes
+  
+  
 ## Remote deforested plots until year of map epoch and assign biomes/eco-regins 
 plots1 <- Deforested(plots,flDir,mapYear)
 plots2 <- BiomePair(plots) 
