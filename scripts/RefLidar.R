@@ -1,83 +1,73 @@
-### IF LIDAR-BASED MAPS ARE TO BE USED AS REFERENCE DATA, THIS FUNCTION WILL CONVERT EACH MAP PIXEL
-### TO POINTS AND OBTAIN  NECESSARY INFO SUCH AS YEAR AND PLOT ID. THE MAP SD LAYERS WILL BE INCLUDED
-
-RefLidar <- function(lidar.dir='D:/AGBC/data/SustainableLandscapeBrazil_v03/SLB_AGBmaps',year=2018){
-  newproj <- "+proj=longlat +datum=WGS84"           
-  raw <- list.files(lidar.dir)
-  yrs <- 2010:2018
+RefLidar <- function(lidar.dir = 'D:/AGBC/data/SustainableLandscapeBrazil_v03/SLB_AGBmaps', year = 2018) {
+  newproj <- "+proj=longlat +datum=WGS84"
+  raw <- list.files(lidar.dir, full.names = TRUE)
   
-  if(!is.na(year)){
-    yrs <- setdiff(yrs,year)
-    no.match <-  c(yrs,'aux', 'csv', 'pdf', 'RData')
-    no.match <- unique(grep(paste(no.match,collapse="|"), raw, value=T))
-    raw1 <- setdiff(raw,no.match)
-    
-  }else{
-    no.match <-  c('aux', 'csv', 'pdf', 'RData')
-    no.match <- unique(grep(paste(no.match,collapse="|"), raw, value=T))
-    raw1 <- setdiff(raw,no.match)
+  # Prompt for raster type
+  raster_type <- readline(prompt = "Enter raster type (AGB, CV, or SD): ")
+  raster_type <- toupper(raster_type)  # Ensure case consistency
+  
+  if (!raster_type %in% c("AGB", "CV", "SD")) {
+    stop("Invalid raster type. Please enter 'AGB', 'CV', or 'SD'.")
   }
-  setwd(lidar.dir)
   
-  r.files <- lapply(raw1, function(x) {
+  # Load raster files
+  r.files <- lapply(raw, function(x) {
     r <- raster(x)
-    names(r) <- x
-    names(r[[1]]) <- x
-    r})
+    names(r) <- "value"  # Standardize the column name for raster data
+    r
+  })
   
-  
-  if (grepl('utm', crs(r.files[[1]]), fixed = TRUE) |
-      grepl('meters', crs(r.files[[1]]), fixed = TRUE) |
-      grepl('metre', crs(r.files[[1]]), fixed = TRUE) |
-      grepl('UTM', crs(r.files[[1]]), fixed = TRUE) |
-      grepl('zone', crs(r.files[[1]]), fixed = TRUE) |
-      grepl('NAD', crs(r.files[[1]]), fixed = TRUE)) {
-
-    r.files <- lapply(1:length(r.files), function(x) 
-      projectRaster(r.files[[x]], crs = newproj,method= 'bilinear'))
-    
-    
-  }
-  else{
-  #  r.files=lapply(r.files, function(x) aggregate(x,10,'mean')) no need to aggregate!
-    r.files <- r.files
+  # Reproject to WGS84 if needed
+  if (any(sapply(r.files, function(x) grepl('utm|meters|metre|UTM|zone|NAD', crs(x), ignore.case = TRUE)))) {
+    r.files <- lapply(r.files, function(x) projectRaster(x, crs = newproj, method = 'bilinear'))
   }
   
   ha <- xres(r.files[[1]]) * 1000
   
-  #pixels to points
-  pts.list <- lapply(1:length(r.files), function(x) 
-    rasterToPoints(r.files[[x]],spatial = T))
-  pts.list <- lapply(pts.list, setNames, nm = 'same_name')
-  pts.list <- lapply(1:length(pts.list),function(x) {pts.list[[x]]$ID <- names(r.files[[x]]);return(pts.list[[x]])})
-  pts <- do.call(rbind, lapply(1:length(pts.list), function(x){
-    SpatialPointsDataFrame(coords = pts.list[[x]]@coords,data = as.data.frame(pts.list[[x]]))}))
-                           
-  if (grepl('AGBmaps',lidar.dir, fixed = TRUE) == TRUE ){
-    names(pts) <- c('AGB_T_HA','ID', 'POINT_X', 'POINT_Y')
-    }else  if (grepl('CVmaps',lidar.dir, fixed = TRUE) == TRUE ){
-      names(pts) <- c('CV', 'ID','POINT_X', 'POINT_Y')
-    }else{ names(pts) <- c('AGB_T_HA','ID', 'POINT_X', 'POINT_Y') }
-
-  print(pts$ID[1])
-  id.str <- c(menu(1:20, title="enter index of the first letter of PLOT ID "),
-              menu(1:20, title="enter index of the last letter of PLOT ID "))
-  pts$PLOT_ID =  substr(pts$ID, id.str[1], id.str[2]) 
-
-  print(pts$ID[1])
-  id.str <- c(menu(1:30, title="enter index of the first letter of YEAR"),
-              menu(1:30, title="enter index of the last letter of YEAR"))
-  pts$AVG_YEAR =  substr(pts$ID, id.str[1], id.str[2])
-
-  setwd(dataDir)
+  # Convert pixels to points
+  pts.list <- lapply(r.files, function(x) {
+    df <- as.data.frame(rasterToPoints(x))  # Convert raster to data frame
+    colnames(df) <- c("POINT_X", "POINT_Y", raster_type)  # Rename columns
+    df
+  })
   
-  if (grepl('AGBmaps',lidar.dir, fixed = TRUE) == TRUE ){
-    pts <- pts[,c('PLOT_ID', 'POINT_X', 'POINT_Y', 'AGB_T_HA', 'AVG_YEAR')]
-  }else  if (grepl('CVmaps',lidar.dir, fixed = TRUE) == TRUE ){
-    pts <- pts[,c('PLOT_ID', 'POINT_X', 'POINT_Y', 'CV', 'AVG_YEAR')]
+  # Add ID for each raster file
+  pts.list <- lapply(seq_along(pts.list), function(i) {
+    pts <- pts.list[[i]]
+    pts$ID <- basename(raw[i])  # Add file name as ID
+    pts
+  })
+  
+  # Combine all points into a single data frame
+  pts <- do.call(rbind, pts.list)
+  
+  # Manual entry for PLOT_ID and AVG_YEAR
+  print(pts$ID[1])
+  plot_start <- as.integer(readline(prompt = "Enter index of the first letter of PLOT_ID: "))
+  plot_end <- as.integer(readline(prompt = "Enter index of the last letter of PLOT_ID: "))
+  pts$PLOT_ID <- substr(pts$ID, plot_start, plot_end)
+  
+  print(pts$ID[1])
+  year_start <- as.integer(readline(prompt = "Enter index of the first letter of YEAR: "))
+  year_end <- as.integer(readline(prompt = "Enter index of the last letter of YEAR: "))
+  pts$AVG_YEAR <- substr(pts$ID, year_start, year_end)
+  
+  # Handle short year formats
+  if (any(nchar(pts$AVG_YEAR) == 2)) {
+    pts$AVG_YEAR <- ifelse(nchar(pts$AVG_YEAR) == 2, paste0("20", pts$AVG_YEAR), pts$AVG_YEAR)
   }
-    
+  
+  # Add additional columns
   pts$SIZE_HA <- ha
-  pts = data.frame(pts)
-  pts[,-c(length(pts)-2,length(pts)-1,length(pts))]
+  
+  # Format output based on raster type
+  if (raster_type == "AGB") {
+    pts <- pts[, c("PLOT_ID", "POINT_X", "POINT_Y", "AGB", "AVG_YEAR")]
+  } else if (raster_type == "CV") {
+    pts <- pts[, c("PLOT_ID", "POINT_X", "POINT_Y", "CV", "AVG_YEAR")]
+  } else if (raster_type == "SD") {
+    pts <- pts[, c("PLOT_ID", "POINT_X", "POINT_Y", "SD", "AVG_YEAR")]
+  }
+  
+  return(pts)
 }
