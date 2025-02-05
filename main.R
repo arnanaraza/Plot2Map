@@ -130,9 +130,10 @@ setwd(dataDir)
   ## (6) REFERENCE DATA IS A LIDAR-BASED MAP
 
   slb.agb.dir <- './SustainableLandscapeBrazil_v04/SLB_AGBmaps'
+  slb.agb.dir <- 'LiDAR-based_biomass_maps_Central_Africa'
   slb.cv.dir <- './SustainableLandscapeBrazil_v04/SLB_CVmaps'
-  slb.cv <- RefLidar(slb.cv.dir, 2018)
-  plots <- RefLidar(slb.agb.dir, 2018)
+  slb.cv <- RefLidar(slb.agb.dir) 
+  plots <- RefLidar(slb.agb.dir)
   plots$sdTree <- slb.cv$CV * plots$AGB_T_HA
 
 

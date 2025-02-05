@@ -1,4 +1,4 @@
-RefLidar <- function(lidar.dir = 'D:/AGBC/data/SustainableLandscapeBrazil_v03/SLB_AGBmaps', year = 2018) {
+RefLidar <- function(lidar.dir = 'D:/AGBC/data/SustainableLandscapeBrazil_v03/SLB_AGBmaps', year = NA) {
   newproj <- "+proj=longlat +datum=WGS84"
   raw <- list.files(lidar.dir, full.names = TRUE)
   
@@ -41,21 +41,35 @@ RefLidar <- function(lidar.dir = 'D:/AGBC/data/SustainableLandscapeBrazil_v03/SL
   # Combine all points into a single data frame
   pts <- do.call(rbind, pts.list)
   
-  # Manual entry for PLOT_ID and AVG_YEAR
+  # Manual entry for PLOT_ID
   print(pts$ID[1])
   plot_start <- as.integer(readline(prompt = "Enter index of the first letter of PLOT_ID: "))
   plot_end <- as.integer(readline(prompt = "Enter index of the last letter of PLOT_ID: "))
   pts$PLOT_ID <- substr(pts$ID, plot_start, plot_end)
   
-  print(pts$ID[1])
-  year_start <- as.integer(readline(prompt = "Enter index of the first letter of YEAR: "))
-  year_end <- as.integer(readline(prompt = "Enter index of the last letter of YEAR: "))
-  pts$AVG_YEAR <- substr(pts$ID, year_start, year_end)
-  
-  # Handle short year formats
-  if (any(nchar(pts$AVG_YEAR) == 2)) {
-    pts$AVG_YEAR <- ifelse(nchar(pts$AVG_YEAR) == 2, paste0("20", pts$AVG_YEAR), pts$AVG_YEAR)
+  # If year is NA, ask the user for it
+  if (is.na(year)) {
+    print(pts$ID[1])
+    year_start <- readline(prompt = "Enter index of the first letter of YEAR (leave blank if year is not in filename): ")
+    
+    if (year_start == "") {
+      extracted_year <- readline(prompt = "Year not found in filename. Please enter YEAR manually: ")
+    } else {
+      year_start <- as.integer(year_start)
+      year_end <- as.integer(readline(prompt = "Enter index of the last letter of YEAR: "))
+      extracted_year <- substr(pts$ID, year_start, year_end)
+    }
+    
+    # Convert two-digit years to four-digit format if necessary
+    if (nchar(extracted_year) == 2) {
+      extracted_year <- paste0("20", extracted_year)  # Assuming all two-digit years refer to the 21st century
+    }
+    
+  } else {
+    extracted_year <- as.character(year)  # Use the provided year
   }
+  
+  pts$AVG_YEAR <- extracted_year
   
   # Add additional columns
   pts$SIZE_HA <- ha
