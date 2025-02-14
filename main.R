@@ -23,11 +23,11 @@ if (!require("pacman")) install.packages("pacman")
 
 
 ## Define global variables and folder directories, adapt accordingly e.g. "C:/Plot2Map"
-mainDir <- "C:/Plot2Map"
-scriptsDir <- "C:/Plot2Map/scripts" 
-outDir <- "C:/Plot2Map/results"
-dataDir <- "C:/Plot2Map/data"
-flDir <- 'C:/GFCFolder' #should be outside the main directory because GFC tiles will be downloaded here
+mainDir <- "/Users/renflores/Documents/GFC/Plot2Map"
+scriptsDir <- "/Users/renflores/Documents/GFC/Plot2Map/scripts" 
+outDir <- "/Users/renflores/Documents/GFC/Plot2Map/results"
+dataDir <- "/Users/renflores/Documents/GFC/Plot2Map/data"
+flDir <- '/Users/renflores/Documents/GFC' #should be outside the main directory because GFC tiles will be downloaded here
 
 SRS <- CRS('+init=epsg:4326')
 
@@ -38,8 +38,8 @@ forestTHs <- 10
 AGBown <- 'NA'
 
 ## Map and tree cover directories that SHOULD BE PRE-DOWNLOADED! See download script for CCI maps. 
-agbTilesDir <- "D:/ESACCI-BIOMASS-L4-AGB-MERGED-100m-2020-fv5.0"
-treeCoverDir <- 'C:/treecover2010_v3_100m'
+agbTilesDir <- "/Users/renflores/Documents/GFC/Plot2Map/data/ESACCI-BIOMASS-L4-AGB_SD-MERGED-10000m-fv5.0.tif"
+treeCoverDir <- '/Users/renflores/Documents/GFC/data/GLADForestCoverBrazil.tif'
 #treeCoverDir <- 'D:/treecover2010_v3'
 
 ## The map epoch , works if 
@@ -86,7 +86,7 @@ setwd(dataDir)
   ## Then will ask users about specific column index of required plot variables such as
   ## unique plot D, longitude, latitude, AGB of the plot, plot size, inventory year
   
-  plotsFile <- 'SampleUnformattedPlots.csv'
+  plotsFile <- '/Users/renflores/Documents/GFC/data/subplot_AGBD_Amazonia_2018_5000m2.csv'
   plots <- RawPlots(read.csv(plotsFile)) 
 
   ## (3) PLOT DATA IS A POLYGON WITH PLOT CORNER COORDINATES
