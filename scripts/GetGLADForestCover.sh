@@ -4,7 +4,7 @@
 base_url="https://glad.umd.edu/Potapov/TCC_2010/"
 
 # Directory to save the files in (create the directory if it doesn't exist)
-save_dir="$HOME/Documents/GFC"
+save_dir="$HOME/Documents/GFC/data/TCC_2010"
 mkdir -p "$save_dir"
 
 # Loop through both North and South latitudes
