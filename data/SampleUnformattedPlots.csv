@@ -1,4 +1,4 @@
-Província,Estrato Florestal,id_parcela,Ycoordinate,Xcoordinate, Vt (m^3/ha) , Vc (m^3/ha) , AGB (ton/ha) , BGB (ton/ha) ,year,size
+Province,Estrato Florestal,id_parcela,Ycoordinate,Xcoordinate, Vt (m3_ha) , Vc (m3_ha) , AGB (ton_ha) , BGB (ton_ha) ,year,size
 Cabo Delgado,"Floresta (semi-) decidua, incluindo Miombo",CD0772003,-10.606565,40.536637,39.9,2.53,32.61,21.73,2016,0.1
 Cabo Delgado,"Floresta (semi-) decidua, incluindo Miombo",CD0772002,-10.606569,40.535723,24.65,0.77,21.44,13.32,2016,0.1
 Cabo Delgado,"Floresta (semi-) decidua, incluindo Miombo",CD0770543,-10.606665,40.527437,4.09,0,4.41,2.96,2016,0.1

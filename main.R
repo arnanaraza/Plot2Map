@@ -87,8 +87,8 @@ setwd(dataDir)
   ## unique plot D, longitude, latitude, AGB of the plot, plot size, inventory year
   
   plotsFile <- 'SampleUnformattedPlots.csv'
-  plots <- RawPlots(read.csv(plotsFile)) 
-
+  plots <- RawPlots(read.csv(plotsFile))
+  
   ## (3) PLOT DATA IS A POLYGON WITH PLOT CORNER COORDINATES
   
   plotsFile <- 'PolyTropiSAR.csv'  #Labriere et al. 2018 sample data
@@ -137,13 +137,14 @@ setwd(dataDir)
   plots$sdTree <- slb.cv$CV * plots$AGB_T_HA
 
 
-  ## (7) PLOT DATA IS A SHAPEFILE 
-  plotsFile <- 'samp_shp.shp'
+  ## (7) PLOT DATA IS A SHAPEFILE / GEOPACKAGE
+  plotsFile <- 'samp_shp.shp' # OR 'samp_gpkg.gpkg'
   plots_sf <- st_read(plotsFile)
   plots_sf <- st_transform(plots_sf, crs = 4326)
   plots_sf$longitude <- st_coordinates(st_centroid(plots_sf))[, 1]
   plots_sf$latitude <- st_coordinates(st_centroid(plots_sf))[, 2]
-  plots <- RawPlots(plots_sf) # Users should know year, plot size, inventory year beforehand for manual entry if ever missing in the shapefiles'attributes
+  plots_df <- st_drop_geometry(plots_sf)
+  plots <- RawPlots(plots_df) # Users should know year, plot size, inventory year beforehand for manual entry if ever missing in the shapefiles'attributes
   
   
 ## Remote deforested plots until year of map epoch and assign biomes/eco-regins 
