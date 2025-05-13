@@ -3,7 +3,7 @@
 
 Nested <- function(centroid_shp, tree_table){
   cent.sf <- st_as_sf(centroid_shp)
-  cent.wgs <- spTransform(centroid_shp, CRS("+init=epsg:4326")) #to WGS84
+  cent.wgs <- st_transform(centroid_shp, st_crs(4326))  #to WGS84
   pol <- st_buffer(cent.sf, 5.64) #square buffer approx. 1km resolution
   
   plotTree0 <- subset(tree_table, tree_table$TREE_ALIVE == 1 & 
@@ -30,8 +30,8 @@ Nested <- function(centroid_shp, tree_table){
                               plotTree$height)
   }
   
-  cent.wgs$x <-cent.wgs@coords[,1]
-  cent.wgs$y <- cent.wgs@coords[,2]
+  cent.wgs$x <- st_coordinates(cent.wgs)[, 1]
+  cent.wgs$y <- st_coordinates(cent.wgs)[, 2]
   
   xyTree <- left_join(plotTree, as.data.frame(cent.wgs), by=c('id'='POINT_GUID'))
   xyTree <- xyTree[,c('id', 'y', 'x')]
