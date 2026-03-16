@@ -29,7 +29,7 @@ outDir <- "C:/Plot2Map/results"
 dataDir <- "C:/Plot2Map/data"
 flDir <- 'C:/GFCFolder' #should be outside the main directory because GFC tiles will be downloaded here
 
-SRS <- CRS('+init=epsg:4326')
+SRS <- st_crs(4326)
 
 ## Set forest threshold into FAO-suggested 10% and above tree cover 
 forestTHs <- 10
